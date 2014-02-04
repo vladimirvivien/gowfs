@@ -7,7 +7,7 @@ import "strconv"
 import "net/url"
 
 
-func (fs *FileSystem) Create (p Path, overwrite bool, blocksize int64, replication int16, perm os.FileMode, bufferSize int) (url.URL, error){
+func (fs *FileSystem) Create(p Path, overwrite bool, blocksize int64, replication int16, perm os.FileMode, bufferSize int) (url.URL, error){
 	return url.URL{}, fmt.Errorf("Method Create() unimplemented.")
 }
 

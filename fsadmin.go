@@ -31,7 +31,7 @@ func (fs *FileSystem) SetTimes(p Path, accessTime int64, modTime int64)(bool, er
 
 // Creates the specified directory(ies).
 // See HDFS FileSystem.mkdirs()
-func (fs *FileSystem) MkDirs (p Path, fm os.FileMode) (bool, error) {
+func (fs *FileSystem) MkDirs(p Path, fm os.FileMode) (bool, error) {
 	params := map[string]string{"op":OP_MKDIRS}
 
 	if fm <= 0 || fm > 1777{
@@ -58,7 +58,7 @@ func (fs *FileSystem) MkDirs (p Path, fm os.FileMode) (bool, error) {
 // link - the symlink path to create
 // createParent - when true, parent dirs are created if they don't exist
 // See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#HTTP_Query_Parameter_Dictionary
-func (fs *FileSystem) CreateSymlink (dest Path, link Path, createParent bool) (bool, error) {
+func (fs *FileSystem) CreateSymlink(dest Path, link Path, createParent bool) (bool, error) {
 	params := map[string]string{"op":OP_CREATESYMLINK}
 
 	if dest.Path == "" || link.Path == "" {

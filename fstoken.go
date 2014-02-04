@@ -14,6 +14,6 @@ func (fs *FileSystem) RenewToken(token string) (int64, error){
 	return -1, fmt.Errorf("Method RenewToken() unimplemented.")
 }
 
-func (fs *FileSystem) CacnelDelegationToken(token string)(bool, error){
+func (fs *FileSystem) CancelDelegationToken(token string)(bool, error){
 	return false, fmt.Errorf("Method CacnelDelegationToken() unimplemented.")
 }

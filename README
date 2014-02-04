@@ -21,7 +21,28 @@ Limitations
 
 Implemented
 -----------
-
+MkDirs()
+CreateSymlink()
+GetFileStatus()
+ListStatus()
+GetContentSummary()
+GetHomeDirectory()
+GetFileChecksum()
+Open()
 
 Unimplemented
-------------- 
+-------------
+Rename()
+Delete()
+SetPermission()
+SetOwner()
+SetReplication()
+SetTimes()
+Create()
+Append()
+Concat()
+GetDelegationToken()
+GetDelegationTokens()
+RenewToken()
+CancelDelegationToken()
+
