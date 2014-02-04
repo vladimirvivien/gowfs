@@ -1,0 +1,27 @@
+gowfs 
+-----
+Gowfs is a Web Hadoop FileSystem (WebHDFS) client API in Go.
+
+Usage
+-----
+go get github.com/vladimirvivien/gowfs
+
+import github.com/vladimirvivien/gowfs
+
+See the "gowfs-example" project for detail on using the API.
+
+NOTE: Ensure your HDFS deployment is confifured for WebHdfs.
+
+Limitations
+-----------
+1) Very early implementation.
+2) Only "Simple" security mode supported.
+3) Not all methods are implemeted at this time.
+   Unimplemented methods will return an error.
+
+Implemented
+-----------
+
+
+Unimplemented
+------------- 
