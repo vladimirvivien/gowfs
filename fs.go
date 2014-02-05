@@ -3,11 +3,11 @@ package gowfs
 import "encoding/json"
 import "net/http"
 import "net/url"
-import "io"
 import "io/ioutil"
 
 const (
 	OP_OPEN					= "OPEN"
+	OP_CREATE 				= "CREATE"
 	OP_MKDIRS				= "MKDIRS"
 	OP_CREATESYMLINK		= "CREATESYMLINK"
 	OP_LISTSTATUS 			= "LISTSTATUS"
@@ -60,30 +60,28 @@ func buildRequestUrl(conf Configuration, p *Path, params *map[string]string) (*u
 	return u, nil
 }
 
-// returns raw HTTP data
-func requestRawHttp(client http.Client, req url.URL) (io.ReadCloser, error){
+// Make http requests here
+func makeHttpRequest(client http.Client, req url.URL) (http.Response, error){
 	rsp, err := client.Get(req.String())
 	if err != nil {
-		return nil, err
+		return http.Response{}, err
 	}
-	//defer rsp.Body.Close()
-	return rsp.Body, nil
+	return *rsp, nil
 }
 
 // returns typed HDFS data
 func requestHdfsData(client http.Client, req url.URL) (HdfsJsonData, error) {
 	
-	http, err := requestRawHttp(client, req)
-	if err != nil {
-		return HdfsJsonData{}, err
-	}
-	defer http.Close()
-
-	body, err := ioutil.ReadAll(http)
+	rsp, err := makeHttpRequest(client, req)
 	if err != nil {
 		return HdfsJsonData{}, err
 	}
 
+	defer rsp.Body.Close()
+	body, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		return HdfsJsonData{}, err
+	}
 
 	var jsonData HdfsJsonData
 	jsonErr := json.Unmarshal(body, &jsonData)

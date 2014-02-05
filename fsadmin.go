@@ -35,10 +35,10 @@ func (fs *FileSystem) MkDirs(p Path, fm os.FileMode) (bool, error) {
 	params := map[string]string{"op":OP_MKDIRS}
 
 	if fm <= 0 || fm > 1777{
-		return false, fmt.Errorf("MkDirs - Permission value [%v] out of range.", fm)
+		params["permission"] = "0700"
+	}else{
+		params["permission"] = strconv.FormatInt(int64(fm), 8)
 	}
-	// convert to an octal
-	params["permission"] = strconv.FormatInt(int64(fm), 8)
 	u, err := buildRequestUrl(fs.Config, &p, &params)
 	if err != nil {
 		return false, err
@@ -72,8 +72,8 @@ func (fs *FileSystem) CreateSymlink(dest Path, link Path, createParent bool) (bo
 		return false, err
 	}
 
-	rsp, err := requestRawHttp(fs.client, *u)
-	defer rsp.Close()
+	rsp, err := makeHttpRequest(fs.client, *u)
+	defer rsp.Body.Close()
 	
 	if err != nil  {
 		return false, err

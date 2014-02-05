@@ -2,6 +2,7 @@ package gowfs
 
 import "fmt"
 import "log"
+import "io/ioutil"
 import "net/http"
 import "net/http/httptest"
 
@@ -15,6 +16,70 @@ func makeMockWebServer(handler func (rsp http.ResponseWriter, req * http.Request
 	return server // returns a started server, don't forget to close or else...
 }
 
+
+func getCreateFileServer() *httptest.Server {
+  handler := func (rsp http.ResponseWriter, req *http.Request){
+      q := req.URL.Query()
+      if q.Get("op") != OP_CREATE{
+        log.Fatalf("Server Missing expected URL parameter: op=%v", OP_CREATE)
+      }
+      if q.Get("blocksize") != "134217728" {
+          log.Fatalf("Expected param blocksize to be 134217728, but was %v", q.Get("blocksize"))
+      }      
+      if q.Get("replication") != "3" {
+          log.Fatalf("Expected param replciation to be 3, but was %v", q.Get("replication"))
+      }
+      if q.Get("permission") != "744" {
+          log.Fatalf("Expected param offset to be 744, but was %v", q.Get("permission"))
+      }
+      if q.Get("buffersize") != "4096" {
+          log.Fatalf("Expected param offset to be 4096, but was %v", q.Get("buffersize"))
+      }
+
+      rsp.Header().Set("Location",req.URL.String())
+      rsp.WriteHeader(http.StatusSeeOther)
+
+      fmt.Fprintf (rsp, "")
+  }
+
+  return makeMockWebServer(handler)
+}
+
+func getWriteFileServer() *httptest.Server {
+  handler := func (rsp http.ResponseWriter, req *http.Request){
+      q := req.URL.Query()
+      if q.Get("op") != OP_CREATE{
+        log.Fatalf("Server Missing expected URL parameter: op=%v", OP_CREATE)
+      }
+      if q.Get("blocksize") != "134217728" {
+          log.Fatalf("Expected param blocksize to be 134217728, but was %v", q.Get("blocksize"))
+      }      
+      if q.Get("replication") != "3" {
+          log.Fatalf("Expected param replciation to be 3, but was %v", q.Get("replication"))
+      }
+      if q.Get("permission") != "744" {
+          log.Fatalf("Expected param offset to be 744, but was %v", q.Get("permission"))
+      }
+      if q.Get("buffersize") != "4096" {
+          log.Fatalf("Expected param offset to be 4096, but was %v", q.Get("buffersize"))
+      }
+
+      // ensure data maded it
+      data, _ := ioutil.ReadAll(req.Body)
+      defer req.Body.Close()
+
+      if string(data) != "Hello webhdfs users!" {
+          log.Fatalf("Expected data not posted to server. Server got %v", string(data))
+      }
+
+      rsp.WriteHeader(http.StatusCreated)
+      fmt.Fprintf (rsp, "")
+  }
+  
+  return makeMockWebServer(handler)
+}
+
+
 func getOpenFileServer() *httptest.Server{
   handler := func (rsp http.ResponseWriter, req *http.Request){
       q := req.URL.Query()
@@ -27,8 +92,8 @@ func getOpenFileServer() *httptest.Server{
       if q.Get("length") != "512" {
           log.Fatalf("Expected param offset to be 512, but was %v", q.Get("length"))
       }
-      if q.Get("bufferSize") != "2048" {
-          log.Fatalf("Expected param offset to be 2048, but was %v", q.Get("bufferSize"))
+      if q.Get("buffersize") != "2048" {
+          log.Fatalf("Expected param offset to be 2048, but was %v", q.Get("buffersize"))
       }
 
       fmt.Fprintf (rsp, "Hello, webhdfs user!")

@@ -1,9 +1,7 @@
 package gowfs
 
-import "io/ioutil"
 import "net/url"
 import "testing"
-
 
 func Test_NewFileSystem(t *testing.T) {
 	conf := Configuration{Addr:"localhost:8080"}
@@ -46,31 +44,6 @@ func Test_buildRequestUrl(t *testing.T){
 	if url1.String() != u.String() {
 		t.Errorf("Expecting url [%v], but got [%v]", url1.String(), u.String())
 	}	
-}
-
-func Test_Open(t *testing.T) {
-	server := getOpenFileServer()
-	defer server.Close()
-
-	url,_ := url.Parse(server.URL)
-
-	conf := Configuration{Addr: url.Host }
-	fs, _ := NewFileSystem(conf)
-	
-	// data is io.ReaderCloser
-	data, err := fs.Open(Path{Path:"/test"}, 0, 512, 2048)
-	if err != nil {
-		t.Fatal(err)
-	}
-	defer data.Close() // make sure to close.
-
-	rcvdData, _ := ioutil.ReadAll(data)
-
-	expectedData := []byte("Hello, webhdfs user!")
-	if (string(rcvdData) != string(expectedData)){
-		t.Errorf("Open() - Expecting binary response [%v], but got [%v]", 
-			string(expectedData), string(rcvdData))
-	}
 }
 
 
