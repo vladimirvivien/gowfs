@@ -8,6 +8,8 @@ import "io/ioutil"
 const (
 	OP_OPEN					= "OPEN"
 	OP_CREATE 				= "CREATE"
+	OP_APPEND				= "APPEND"
+	OP_CONCAT				= "CONCAT"
 	OP_MKDIRS				= "MKDIRS"
 	OP_CREATESYMLINK		= "CREATESYMLINK"
 	OP_LISTSTATUS 			= "LISTSTATUS"

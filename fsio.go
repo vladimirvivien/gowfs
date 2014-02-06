@@ -5,6 +5,7 @@ import "os"
 import "io"
 import "bytes"
 import "strconv"
+import "strings"
 import "net/url"
 import "net/http"
 
@@ -18,7 +19,7 @@ func (fs *FileSystem) Create(
 	blocksize uint64, 
 	replication uint16, 
 	permission os.FileMode, 
-	buffersize uint) (url.URL, error){
+	buffersize uint) (Path, error){
 
 	params := map[string]string{"op":OP_CREATE}
 	params["overwrite"] = strconv.FormatBool(overwrite)
@@ -49,7 +50,7 @@ func (fs *FileSystem) Create(
 
 	u, err := buildRequestUrl(fs.Config, &p, &params)
 	if err != nil {
-		return url.URL{}, err
+		return Path{}, err
 	}
 
 	// take over default transport to avoid redirect
@@ -58,29 +59,33 @@ func (fs *FileSystem) Create(
 	rsp, err := tr.RoundTrip(req)
 
 	if err != nil {
-		return url.URL{}, err
+		return Path{}, err
 	}
 
 	// extract returned url in header.
 	loc := rsp.Header.Get("Location")
 
 	if loc == "" {
-		return url.URL{}, fmt.Errorf("Create() - did not receive URL for newly created HDFS file.")
+		return Path{}, fmt.Errorf("Create() - did not receive URL for newly created HDFS file.")
 	}
 
 	u, err = url.Parse(loc)
 	if err != nil {
-		return url.URL{}, fmt.Errorf("Create() - did not receive a valid URL from server.")
+		return Path{}, fmt.Errorf("Create() - did not receive a valid URL from server.")
 	}
 
-	return *u, nil
+	return Path{Path:p.Path, RefererUrl:*u}, nil
 }
 
-// This function writes provied buffer to specified URL.
-// Call this function after a call to Create()
+// This function writes provied buffer to specified Path.RefererUrl.
+// Call this function after a call to Create().
 // For detail, http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#Create_and_Write_to_a_File
-func (fs *FileSystem) WriteFile(data []byte, loc url.URL) (bool, error){
-	locStr := loc.String()
+func (fs *FileSystem) Write(data []byte, p Path) (bool, error){
+	locStr := p.RefererUrl.String()
+	if locStr == "" {
+		return false, fmt.Errorf("Write() - Parameter Path missing a URL referer.")
+	}
+
 	if _, err := url.Parse(locStr); err != nil {
 		return false, err
 	}
@@ -97,23 +102,10 @@ func (fs *FileSystem) WriteFile(data []byte, loc url.URL) (bool, error){
 	return true, nil
 }
 
-func (fs *FileSystem) Append(data []byte, p Path, bufferSize int)(bool, error){
-	return false, fmt.Errorf("Method Append() unimplemented.")
-}
-
-func (fs *FileSystem) Concat(orig Path, paths []Path)(bool, error) {
-	return false, fmt.Errorf("Method Concat() unimplemented.") 
-}
-
-//Opens the specificed Path for reading.
+//Opens the specificed Path and Read the content of the File. 
 //See HDFS WebHdfsFileSystem.open()
-//NOTE:
-//offset - valid values 0 or greater
-//length - if 0 (will be set to null), meaning entire file will be returned.
-//bufferSize - must be > 0 (if not, will be adjusted)
-//
 // See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#HTTP_Query_Parameter_Dictionary
-func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadCloser, error){
+func (fs *FileSystem) OpenAndRead(p Path, offset, length int64, buffSize int) (io.ReadCloser, error){
 	params := map[string]string{"op":OP_OPEN}
 
 	if offset < 0{
@@ -141,6 +133,92 @@ func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadC
 	if err != nil {
 		return nil, err
 	}
-
 	return rsp.Body, nil
+}
+
+// Opens an existing file (specified by Path) to append []byte.
+// See HDFS FileSystem.append()
+func (fs *FileSystem) OpenForAppend(p Path, buffersize int)(Path, error){
+	params := map[string]string{"op":OP_APPEND}
+	
+	if buffersize == 0 {
+		params["buffersize"] = "4096"
+	}else{
+		params["buffersize"] = strconv.FormatInt(int64(buffersize), 10)
+	}
+
+	u, err := buildRequestUrl(fs.Config, &p, &params)
+	if err != nil {
+		return Path{}, err
+	}
+
+	// take over default transport to avoid redirect
+	tr := &http.Transport{}
+	req, _ := http.NewRequest("PUT", u.String(), nil)
+	rsp, err := tr.RoundTrip(req)
+
+	if err != nil {
+		return Path{}, err
+	}
+
+	// extract returned url in header.
+	loc := rsp.Header.Get("Location")
+
+	if loc == "" {
+		return Path{}, fmt.Errorf("OpenForAppend() - did not receive URL for newly created HDFS file.")
+	}
+
+	u, err = url.Parse(loc)
+	if err != nil {
+		return Path{}, fmt.Errorf("OpenForAppend() - did not receive a valid URL from server.")
+	}
+
+	return Path{Path:p.Path, RefererUrl:*u}, nil
+}
+
+func (fs *FileSystem) Append(data []byte, p Path)(bool, error){
+	locStr := p.RefererUrl.String()
+	if locStr == "" {
+		return false, fmt.Errorf("Append() - Parameter Path missing a URL referer.")
+	}
+
+	if _, err := url.Parse(locStr); err != nil {
+		return false, err
+	}
+
+	rsp, err := http.Post(locStr, "application/octet-stream", bytes.NewBuffer(data))
+	if  err != nil  {
+		return false, err
+	}
+
+	if rsp.StatusCode != http.StatusOK && rsp.StatusCode != http.StatusCreated {
+		return false, fmt.Errorf("File not created.  Server returned status %v", rsp.StatusCode)
+	}
+
+	return true, nil
+}
+
+// Concatenate (on the server) a list of given files paths to a new file.
+// See HDFS FileSystem.concat()
+func (fs *FileSystem) Concat(target Path, sources []string)(bool, error) {
+	if (target == Path{}) {
+		return false, fmt.Errorf("Concat() - The target path must be provided.")
+	}
+	params := map[string]string{"op":OP_CONCAT}
+	params["sources"] = strings.Join (sources, ",")
+	
+	u, err := buildRequestUrl(fs.Config, &target, &params)
+	if err != nil {
+		return false, err
+	}
+
+	req, _ 	 := http.NewRequest("PUT", u.String(), nil)
+	rsp, err := fs.client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	if rsp.StatusCode != http.StatusOK && rsp.ContentLength != 0 {
+		return false, fmt.Errorf("Concat() - Server returned unexpected result.")
+	}
+	return true, nil
 }

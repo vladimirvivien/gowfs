@@ -21,7 +21,7 @@ func Test_buildRequestUrl(t *testing.T){
 	url1 := url.URL{Scheme:"http", Host:"localhost:8080", Path:"/webhdfs/v1/test"}
 	conf := Configuration{Addr:url1.Host}
 
-	u, err := buildRequestUrl (conf, &Path{"/test"}, nil)
+	u, err := buildRequestUrl (conf, &Path{Path:"/test"}, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -40,7 +40,7 @@ func Test_buildRequestUrl(t *testing.T){
 		"op2": "OP_2",
 	}
 
-	u, err = buildRequestUrl (conf, &Path{"/test"}, &params)
+	u, err = buildRequestUrl (conf, &Path{Path:"/test"}, &params)
 	if url1.String() != u.String() {
 		t.Errorf("Expecting url [%v], but got [%v]", url1.String(), u.String())
 	}	
