@@ -7,13 +7,11 @@ import "strconv"
 // Renames the specified path resource to a new name.
 // See HDFS FileSystem.rename()
 func (fs *FileSystem) Rename(source Path, destination Path) (bool, error) {
-	params := map[string]string{"op":OP_RENAME}
-
 	if source.Name == "" || destination.Name == "" {
 		return false, fmt.Errorf("Rename() - params source and destination cannot be empty.")
 	}
 
-	params["destination"] = destination.Name
+	params := map[string]string{"op":OP_RENAME, "destination": destination.Name}
 	u, err := buildRequestUrl(fs.Config, &source, &params)
 	if err != nil {
 		return false, err
@@ -28,24 +26,142 @@ func (fs *FileSystem) Rename(source Path, destination Path) (bool, error) {
 	return hdfsData.Boolean, nil
 }
 
-func (fs *FileSystem) Delete(p Path, recursive bool) (bool, error){
-	return false, fmt.Errorf("Method Delete() unimplemented.")
+//Deletes the specified path.
+//See HDFS FileSystem.delete()
+func (fs *FileSystem) Delete(path Path, recursive bool) (bool, error){
+	if path.Name == "" {
+		return false, fmt.Errorf("Delete() - param path cannot be empty.")
+	}
+	params := map[string]string{
+		"op":OP_DELETE, 
+		"recursive":strconv.FormatBool(recursive)}
+
+	u, err := buildRequestUrl(fs.Config, &path, &params)
+	if err != nil {
+		return false, err
+	}
+
+	req, _ := http.NewRequest("DELETE", u.String(), nil)
+	hdfsData, err := requestHdfsData(fs.client, *req)
+	if err != nil {
+		return false, err
+	}
+
+	return hdfsData.Boolean, nil
 }
 
-func (fs *FileSystem) SetPermission(p Path, fm os.FileMode) (bool, error){
-	return false, fmt.Errorf("Method SetPermission() unimplemented.")
+// Sets the permission for the specified path.
+// See FileSystem.setPermission()
+func (fs *FileSystem) SetPermission(path Path, permission os.FileMode) (bool, error){
+	if path.Name == "" {
+		return false, fmt.Errorf("SetPermission() - param path cannot be empty.")
+	}
+	if permission < 0 || permission > 1777{
+		return false, fmt.Errorf("SetPermission() - permission is invalid.")
+	}
+	params := map[string]string{
+		"op":OP_SETPERMISSION, 
+		"permission":strconv.FormatInt(int64(permission), 8)}
+
+	u, err := buildRequestUrl(fs.Config, &path, &params)
+	if err != nil {
+		return false, err
+	}
+
+	req, _ := http.NewRequest("PUT", u.String(), nil)
+	rsp, err := fs.client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	if rsp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("SetPermission() - server returned unexpected value, permission not set.")
+	}
+
+	return true, nil
 }
 
-func (fs *FileSystem) SetOwner(p Path, owner string, group string) (bool, error){
-	return false, fmt.Errorf("Method SetOwner() unimplemented.")
+//Sets owner for the specified path.
+//See HDFS FileSystem.setOwner()
+func (fs *FileSystem) SetOwner(path Path, owner string, group string) (bool, error){
+	if path.Name == "" {
+		return false, fmt.Errorf("SetOwner() - param path cannot be empty.")
+	}
+	params := map[string]string{
+		"op"	:OP_SETOWNER, 
+		"owner"	:owner,
+		"group"	:group}
+
+	u, err := buildRequestUrl(fs.Config, &path, &params)
+	if err != nil {
+		return false, err
+	}
+
+	req, _ := http.NewRequest("PUT", u.String(), nil)
+	rsp, err := fs.client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	if rsp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("SetOwner() - server returned unexpected value, owner not set.")
+	}
+
+	return true, nil
 }
 
-func (fs *FileSystem) SetReplication(rep uint16)(bool, error){
-	return false, fmt.Errorf("Method SetReplication() unimplemented.")
+
+// Sets replication factor for given path.
+// See HDFS FileSystem.setReplication()
+func (fs *FileSystem) SetReplication(path Path, replication uint16)(bool, error){
+	if path.Name == "" {
+		return false, fmt.Errorf("SetReplication() - param path cannot be empty.")
+	}
+	if replication <= 0 {
+		return false, fmt.Errorf("SetReplication() - replication is invalid.")
+	}
+	params := map[string]string{
+		"op":OP_SETREPLICATION, 
+		"permission":strconv.FormatInt(int64(replication), 8)}
+
+	u, err := buildRequestUrl(fs.Config, &path, &params)
+	if err != nil {
+		return false, err
+	}
+	req, _ := http.NewRequest("PUT", u.String(), nil)
+	hdfsData, err := requestHdfsData(fs.client, *req)
+	if err != nil {
+		return false, err
+	}
+
+	return hdfsData.Boolean, nil
 }
 
-func (fs *FileSystem) SetTimes(p Path, accessTime int64, modTime int64)(bool, error){
-	return false, fmt.Errorf("Method SetTimes() unimplemented.")
+// Sets access or modification time for specified resource
+// See HDFS FileSystem.setTimes
+func (fs *FileSystem) SetTimes(path Path, accesstime int64, modificationtime int64)(bool, error){
+	if path.Name == "" {
+		return false, fmt.Errorf("SetTimes() - Path cannot be empty.")
+	}
+	
+	params := map[string]string{
+		"op"				:OP_SETTIMES, 
+		"accesstime"		: strconv.FormatInt(int64(accesstime), 10),
+		"modificationtime"	: strconv.FormatInt(int64(modificationtime), 10)}
+	
+	u, err := buildRequestUrl(fs.Config, &path, &params)
+	if err != nil {
+		return false, err
+	}
+
+	req, _ := http.NewRequest("PUT", u.String(), nil)
+	rsp, err := fs.client.Do(req)
+	if err != nil {
+		return false, err
+	}
+	if rsp.StatusCode != http.StatusOK {
+		return false, fmt.Errorf("SetTimes() - server returned unexpected value, resource times not modified.")
+	}
+
+	return true, nil
 }
 
 // Creates the specified directory(ies).
@@ -53,7 +169,7 @@ func (fs *FileSystem) SetTimes(p Path, accessTime int64, modTime int64)(bool, er
 func (fs *FileSystem) MkDirs(p Path, fm os.FileMode) (bool, error) {
 	params := map[string]string{"op":OP_MKDIRS}
 
-	if fm <= 0 || fm > 1777{
+	if fm < 0 || fm > 1777{
 		params["permission"] = "0700"
 	}else{
 		params["permission"] = strconv.FormatInt(int64(fm), 8)

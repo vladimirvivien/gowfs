@@ -2,6 +2,8 @@ gowfs
 -----
 Gowfs is a Web Hadoop FileSystem (WebHDFS) client API in Go.
 
+For WebHDFS API detail, see http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/WebHDFS.html.
+
 Usage
 -----
 go get github.com/vladimirvivien/gowfs
