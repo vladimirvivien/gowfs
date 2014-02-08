@@ -22,8 +22,8 @@ if err != nil {
 }
 fmt.Println (checksum)
 
-Confire HDFS
-------------
+HDFS Setup
+----------
 * Enable dfs.webhdfs.enabled property in your hsdfs-site.xml 
 * Ensure hadoop.http.staticuser.user property is set in your core-site.xml.
 * No support for kerberos right now.
