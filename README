@@ -9,12 +9,25 @@ Usage
 go get github.com/vladimirvivien/gowfs
 
 import github.com/vladimirvivien/gowfs
+...
+fs, err := gowfs.NewFileSystem(gowfs.Configuration{Addr: "localhost:50070, User: "hdfs"})
+if err != nil{
+	log.Fatal(err)
+}
+checksum, err := fs.GetFileChecksum(gowfs.Path{Path: *path})
+if err != nil {
+	log.Fatal(err)
+}
+
+Confire HDFS
+------------
+* Enable dfs.webhdfs.enabled property in your hsdfs-site.xml 
+* Ensure hadoop.http.staticuser.user property is set in your core-site.xml.
+* No support for kerberos right now.
 
 Examples
 --------
-See "github.com/vladimirvivien/gowfs-example" project for usage.
-
-NOTE: Ensure your HDFS deployment is confifured for WebHdfs.
+See "https://github.com/vladimirvivien/gowfs-examples" project for more examples.
 
 Limitations
 -----------
