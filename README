@@ -8,7 +8,7 @@ go get github.com/vladimirvivien/gowfs
 
 import github.com/vladimirvivien/gowfs
 
-See the "gowfs-example" project for detail on using the API.
+See "github.com/vladimirvivien/gowfs-example" project for usage.
 
 NOTE: Ensure your HDFS deployment is confifured for WebHdfs.
 
@@ -21,6 +21,12 @@ Limitations
 
 Implemented
 -----------
+Open()
+Rename()
+Delete()
+Create()
+Append()
+Concat()
 MkDirs()
 CreateSymlink()
 GetFileStatus()
@@ -28,19 +34,13 @@ ListStatus()
 GetContentSummary()
 GetHomeDirectory()
 GetFileChecksum()
-Open()
 
 Unimplemented
 -------------
-Rename()
-Delete()
 SetPermission()
 SetOwner()
 SetReplication()
 SetTimes()
-Create()
-Append()
-Concat()
 GetDelegationToken()
 GetDelegationTokens()
 RenewToken()

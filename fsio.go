@@ -90,7 +90,8 @@ func (fs *FileSystem) Write(data []byte, p Path) (bool, error){
 		return false, err
 	}
 
-	rsp, err := http.Post(locStr, "application/octet-stream", bytes.NewBuffer(data))
+	req,   _ := http.NewRequest("PUT", locStr, bytes.NewBuffer(data)) 
+	rsp, err := fs.client.Do(req)
 	if  err != nil  {
 		return false, err
 	}
@@ -129,7 +130,8 @@ func (fs *FileSystem) OpenAndRead(p Path, offset, length int64, buffSize int) (i
 		return nil, err
 	}
 
-	rsp, err := makeHttpRequest(fs.client, *u)
+	req, _ := http.NewRequest("GET", u.String(), nil)
+	rsp, err := fs.client.Do(req)
 	if err != nil {
 		return nil, err
 	}
@@ -154,7 +156,7 @@ func (fs *FileSystem) OpenForAppend(p Path, buffersize int)(Path, error){
 
 	// take over default transport to avoid redirect
 	tr := &http.Transport{}
-	req, _ := http.NewRequest("PUT", u.String(), nil)
+	req, _ := http.NewRequest("POST", u.String(), nil)
 	rsp, err := tr.RoundTrip(req)
 
 	if err != nil {
@@ -186,7 +188,8 @@ func (fs *FileSystem) Append(data []byte, p Path)(bool, error){
 		return false, err
 	}
 
-	rsp, err := http.Post(locStr, "application/octet-stream", bytes.NewBuffer(data))
+	req, _ := http.NewRequest("POST", locStr, bytes.NewBuffer(data))
+	rsp, err := fs.client.Do(req)
 	if  err != nil  {
 		return false, err
 	}
@@ -212,7 +215,7 @@ func (fs *FileSystem) Concat(target Path, sources []string)(bool, error) {
 		return false, err
 	}
 
-	req, _ 	 := http.NewRequest("PUT", u.String(), nil)
+	req, _ 	 := http.NewRequest("POST", u.String(), nil)
 	rsp, err := fs.client.Do(req)
 	if err != nil {
 		return false, err

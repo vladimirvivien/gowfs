@@ -4,8 +4,8 @@ import "testing"
 
 import "net/url"
 import "fmt"
-import "io/ioutil"
 import "log"
+import "io/ioutil"
 import "net/http"
 import "strings"
 import "net/http/httptest"
@@ -13,6 +13,7 @@ import "net/http/httptest"
 func Test_Create(t *testing.T){
 	server := mockServerFor_CreatFile()
 	defer server.Close()
+	t.Logf("Started httptest.Server on %v", server.URL)
 
 	url, _ := url.Parse(server.URL)
 	conf := Configuration{Addr: url.Host }
@@ -39,6 +40,7 @@ func Test_Create(t *testing.T){
 func Test_WriteFile(t *testing.T) {
 	server := mockServerFor_WriteFile() 
 	defer server.Close()
+	t.Logf("Started httptest.Server on %v", server.URL)
 
 	servUrl, _ := url.Parse(server.URL)
 	conf := Configuration{Addr: servUrl.Host}
@@ -61,8 +63,9 @@ func Test_WriteFile(t *testing.T) {
 }
 
 func Test_OpenAndRead(t *testing.T) {
-	server := getOpenFileServer()
+	server := mockServerFor_OpenAndRead()
 	defer server.Close()
+	t.Logf("Started httptest.Server on %v", server.URL)
 
 	url,_ := url.Parse(server.URL)
 
@@ -87,6 +90,7 @@ func Test_OpenAndRead(t *testing.T) {
 func Test_OpenForAppend(t *testing.T){
 	server := mockServerFor_OpenForAppend()
 	defer server.Close()
+	t.Logf("Started httptest.Server on %v", server.URL)
 
 	url, _ := url.Parse(server.URL)
 	conf := Configuration{Addr: url.Host }
@@ -106,6 +110,7 @@ func Test_OpenForAppend(t *testing.T){
 func Test_Append(t *testing.T) {
 	server := mockServerFor_Append() 
 	defer server.Close()
+	t.Logf("Started httptest.Server on %v", server.URL)
 
 	servUrl, _ := url.Parse(server.URL)
 	conf := Configuration{Addr: servUrl.Host}
@@ -119,7 +124,7 @@ func Test_Append(t *testing.T) {
 	u.RawQuery = vals.Encode()
 
 	data := []byte("Hello webhdfs users!")
-	if _, err := fs.Write (data, Path{Path:u.Path, RefererUrl:*u}); err != nil {
+	if _, err := fs.Append (data, Path{Path:u.Path, RefererUrl:*u}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -127,6 +132,7 @@ func Test_Append(t *testing.T) {
 func Test_Concat(t *testing.T) {
 	server := mockServerFor_Concat() 
 	defer server.Close()
+	t.Logf("Started httptest.Server on %v", server.URL)
 
 	url, _ := url.Parse(server.URL)
 	conf := Configuration{Addr: url.Host }
@@ -142,8 +148,36 @@ func Test_Concat(t *testing.T) {
 
 // ***************************** Mock Servers for Tests **********************//
 
+func mockServerFor_OpenAndRead() *httptest.Server{
+  handler := func (rsp http.ResponseWriter, req *http.Request){
+  	  if req.Method != "GET"{
+  	      log.Fatalf("Expecting Request.Method GET, but got %v", req.Method)
+  	  }
+      q := req.URL.Query()
+      if q.Get("op") != OP_OPEN {
+        log.Fatal(`Server Missing expected URL parameter: op=` + OP_OPEN)
+      }
+      if q.Get("offset") != "0" {
+          log.Fatalf("Expected param offset to be 0, but was %v", q.Get("offset"))
+      }      
+      if q.Get("length") != "512" {
+          log.Fatalf("Expected param offset to be 512, but was %v", q.Get("length"))
+      }
+      if q.Get("buffersize") != "2048" {
+          log.Fatalf("Expected param offset to be 2048, but was %v", q.Get("buffersize"))
+      }
+
+      fmt.Fprintf (rsp, "Hello, webhdfs user!")
+  }
+  return httptest.NewServer(http.HandlerFunc(handler))
+}
+
+
 func mockServerFor_CreatFile() *httptest.Server {
   handler := func (rsp http.ResponseWriter, req *http.Request){
+  	  if req.Method != "PUT"{
+  	      log.Fatalf("Expecting Request.Method PUT, but got %v", req.Method)
+  	  }  	
       q := req.URL.Query()
       if q.Get("op") != OP_CREATE{
         log.Fatalf("Server Missing expected URL parameter: op=%v", OP_CREATE)
@@ -172,6 +206,10 @@ func mockServerFor_CreatFile() *httptest.Server {
 
 func mockServerFor_WriteFile() *httptest.Server {
   handler := func (rsp http.ResponseWriter, req *http.Request){
+  	  if req.Method != "PUT"{
+  	      log.Fatalf("Expecting Request.Method PUT, but got %v", req.Method)
+  	  }  	
+
       q := req.URL.Query()
       if q.Get("op") != OP_CREATE{
         log.Fatalf("Server Missing expected URL parameter: op=%v", OP_CREATE)
@@ -201,12 +239,16 @@ func mockServerFor_WriteFile() *httptest.Server {
       fmt.Fprintf (rsp, "")
   }
   
-  return makeMockWebServer(handler)
+  return httptest.NewServer(http.HandlerFunc(handler))
 }
 
 
 func mockServerFor_OpenForAppend() *httptest.Server {
   handler := func (rsp http.ResponseWriter, req *http.Request){
+  	  if req.Method != "POST"{
+  	      log.Fatalf("Expecting Request.Method POST, but got %v", req.Method)
+  	  }  	
+
       q := req.URL.Query()
       if q.Get("op") != OP_APPEND{
         log.Fatalf("Server Missing expected URL parameter: op=%v", OP_APPEND)
@@ -226,6 +268,9 @@ func mockServerFor_OpenForAppend() *httptest.Server {
 
 func mockServerFor_Append() *httptest.Server {
   handler := func (rsp http.ResponseWriter, req *http.Request){
+  	  if req.Method != "POST"{
+  	      log.Fatalf("Expecting Request.Method POST, but got %v", req.Method)
+  	  }  	
       q := req.URL.Query()
       if q.Get("op") != OP_APPEND{
         log.Fatalf("Server Missing expected URL parameter: op=%v", OP_APPEND)
@@ -246,11 +291,15 @@ func mockServerFor_Append() *httptest.Server {
       fmt.Fprintf (rsp, "")
   }
   
-  return makeMockWebServer(handler)
+  return httptest.NewServer(http.HandlerFunc(handler))
 }
 
 func mockServerFor_Concat() *httptest.Server {
   handler := func (rsp http.ResponseWriter, req *http.Request){
+  	  if req.Method != "POST"{
+  	      log.Fatalf("Expecting Request.Method POST, but got %v", req.Method)
+  	  }  	
+
       q := req.URL.Query()
       if q.Get("op") != OP_CONCAT{
         log.Fatalf("Server Missing expected URL parameter: op=%v", OP_CONCAT)
@@ -262,5 +311,5 @@ func mockServerFor_Concat() *httptest.Server {
       fmt.Fprintf (rsp, "")
   }
   
-  return makeMockWebServer(handler)
+  return httptest.NewServer(http.HandlerFunc(handler))
 }

@@ -10,6 +10,7 @@ const (
 	OP_CREATE 				= "CREATE"
 	OP_APPEND				= "APPEND"
 	OP_CONCAT				= "CONCAT"
+	OP_RENAME				= "RENAME"
 	OP_MKDIRS				= "MKDIRS"
 	OP_CREATESYMLINK		= "CREATESYMLINK"
 	OP_LISTSTATUS 			= "LISTSTATUS"
@@ -62,31 +63,9 @@ func buildRequestUrl(conf Configuration, p *Path, params *map[string]string) (*u
 	return u, nil
 }
 
-// Make http requests here
-func makeHttpRequest(client http.Client, req url.URL) (http.Response, error){
-	rsp, err := client.Get(req.String())
-	if err != nil {
-		return http.Response{}, err
-	}
-	return *rsp, nil
-}
-
-// returns typed HDFS data
-func requestHdfsData(client http.Client, req url.URL) (HdfsJsonData, error) {
-	
-	rsp, err := makeHttpRequest(client, req)
-	if err != nil {
-		return HdfsJsonData{}, err
-	}
-
-	defer rsp.Body.Close()
-	body, err := ioutil.ReadAll(rsp.Body)
-	if err != nil {
-		return HdfsJsonData{}, err
-	}
-
+func makeHdfsData(data []byte)(HdfsJsonData, error) {
 	var jsonData HdfsJsonData
-	jsonErr := json.Unmarshal(body, &jsonData)
+	jsonErr := json.Unmarshal(data, &jsonData)
 
 	if jsonErr != nil {
 		return HdfsJsonData{}, jsonErr
@@ -98,6 +77,21 @@ func requestHdfsData(client http.Client, req url.URL) (HdfsJsonData, error) {
 	}
 
 	return jsonData, nil
+
+}
+
+func requestHdfsData(client http.Client, req http.Request) (HdfsJsonData, error){
+	rsp, err := client.Do(&req)
+	if err != nil {
+		return HdfsJsonData{}, err
+	}
+
+	defer rsp.Body.Close()
+	body, err := ioutil.ReadAll(rsp.Body)
+	if err != nil {
+		return HdfsJsonData{}, err
+	}
+	return makeHdfsData(body)
 }
 
 

@@ -2,11 +2,30 @@ package gowfs
 
 import "fmt"
 import "os"
+import "net/http"
 import "strconv"
 // Renames the specified path resource to a new name.
 // See HDFS FileSystem.rename()
-func (fs *FileSystem) Rename(origName Path, newName Path) (bool, error) {
-	return false, fmt.Errorf("Method Rename() unimplemented.")
+func (fs *FileSystem) Rename(source Path, destination Path) (bool, error) {
+	params := map[string]string{"op":OP_RENAME}
+
+	if source.Path == "" || destination.Path == "" {
+		return false, fmt.Errorf("Rename() - params source and destination cannot be empty.")
+	}
+
+	params["destination"] = destination.Path
+	u, err := buildRequestUrl(fs.Config, &source, &params)
+	if err != nil {
+		return false, err
+	}
+
+	req, _ := http.NewRequest("PUT", u.String(), nil)
+	hdfsData, err := requestHdfsData(fs.client, *req)
+	if err != nil {
+		return false, err
+	}
+
+	return hdfsData.Boolean, nil
 }
 
 func (fs *FileSystem) Delete(p Path, recursive bool) (bool, error){
@@ -44,7 +63,8 @@ func (fs *FileSystem) MkDirs(p Path, fm os.FileMode) (bool, error) {
 		return false, err
 	}
 
- 	hdfsData, err := requestHdfsData(fs.client, *u)
+	req, _ := http.NewRequest("PUT", u.String(), nil)
+ 	hdfsData, err := requestHdfsData(fs.client, *req)
 	if err != nil {
 		return false, err
 	}
@@ -72,7 +92,9 @@ func (fs *FileSystem) CreateSymlink(dest Path, link Path, createParent bool) (bo
 		return false, err
 	}
 
-	rsp, err := makeHttpRequest(fs.client, *u)
+	req, _   := http.NewRequest("PUT", u.String(), nil)
+	rsp, err := fs.client.Do(req)
+
 	defer rsp.Body.Close()
 	
 	if err != nil  {
@@ -92,7 +114,8 @@ func (fs *FileSystem) GetFileStatus(p Path) (FileStatus, error) {
 		return FileStatus{}, err
 	}
 
- 	hdfsData, err := requestHdfsData(fs.client, *u)
+	req, _ := http.NewRequest("GET", u.String(), nil)
+ 	hdfsData, err := requestHdfsData(fs.client, *req)
 	if err != nil {
 		return FileStatus{}, err
 	}
@@ -110,7 +133,8 @@ func (fs *FileSystem) ListStatus(p Path) ([]FileStatus, error) {
 		return nil, err
 	}
 
-	hdfsData, err := requestHdfsData(fs.client, *u)
+	req, _ := http.NewRequest("GET", u.String(), nil)
+ 	hdfsData, err := requestHdfsData(fs.client, *req)
 	if err != nil {
 		return nil, err
 	}
@@ -127,7 +151,8 @@ func (fs *FileSystem) GetContentSummary(p Path) (ContentSummary, error) {
 		return ContentSummary{}, err
 	}
 
-	hdfsData, err := requestHdfsData(fs.client, *u)
+	req, _ := http.NewRequest("GET", u.String(), nil)
+ 	hdfsData, err := requestHdfsData(fs.client, *req)
 	if err != nil {
 		return ContentSummary{}, err
 	}
@@ -147,7 +172,9 @@ func (fs *FileSystem) GetFileChecksum(p Path) (FileChecksum, error) {
 	if err != nil {
 		return FileChecksum{}, err
 	}
-	hdfsData, err := requestHdfsData(fs.client, *u)
+
+	req, _ := http.NewRequest("GET", u.String(), nil)
+ 	hdfsData, err := requestHdfsData(fs.client, *req)
 	if err != nil {
 		return FileChecksum{}, err
 	}
