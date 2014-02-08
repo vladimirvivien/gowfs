@@ -18,7 +18,7 @@ func Test_Rename(t *testing.T){
 	conf := Configuration{Addr: url.Host }
 	fs, _ := NewFileSystem(conf)
 	
-	ok, err := fs.Rename(Path{Path:"/testing"}, Path{Path:"/testing/newname"})
+	ok, err := fs.Rename(Path{Name:"/testing"}, Path{Name:"/testing/newname"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -37,7 +37,7 @@ func Test_MkDirs(t *testing.T){
 	conf := Configuration{Addr: url.Host }
 	fs, _ := NewFileSystem(conf)
 	
-	ok, err := fs.MkDirs(Path{Path:"/test"}, 0744)
+	ok, err := fs.MkDirs(Path{Name:"/test"}, 0744)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -56,7 +56,7 @@ func Test_CreateSymlink(t *testing.T) {
 	conf  := Configuration{Addr: url.Host }
 	fs, _ := NewFileSystem(conf)
 
-	ok, err := fs.CreateSymlink(Path{Path:"/test/orig"}, Path{Path:"/symlink"}, false)
+	ok, err := fs.CreateSymlink(Path{Name:"/test/orig"}, Path{Name:"/symlink"}, false)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -76,7 +76,7 @@ func Test_GetFileStatus(t *testing.T){
 	conf := Configuration{Addr: url.Host }
 	fs, _ := NewFileSystem(conf)
 	
-	fileStatus, err := fs.GetFileStatus(Path{Path:"/test"})
+	fileStatus, err := fs.GetFileStatus(Path{Name:"/test"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,7 +96,7 @@ func Test_ListStatus(t *testing.T){
 	conf := Configuration{Addr: url.Host }
 	fs, _ := NewFileSystem(conf)
 	
-	statuses, err := fs.ListStatus(Path{Path:"/test"})
+	statuses, err := fs.ListStatus(Path{Name:"/test"})
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -113,7 +113,7 @@ func Test_GetContentSummary(t *testing.T) {
 
 	url, _ := url.Parse(server.URL)
 	fs, _  := NewFileSystem(Configuration{Addr:url.Host})
-	summary, err := fs.GetContentSummary(Path{Path:"/test"})
+	summary, err := fs.GetContentSummary(Path{Name:"/test"})
 	if err != nil {
 		t.Fatal (err)
 	}
@@ -129,7 +129,7 @@ func Test_GetFileChecksum(t *testing.T) {
 
 	url, _ := url.Parse(server.URL)
 	fs, _  := NewFileSystem(Configuration{Addr:url.Host})
-	checksum, err := fs.GetFileChecksum(Path{Path:"/test"})
+	checksum, err := fs.GetFileChecksum(Path{Name:"/test"})
 	if err != nil {
 		t.Fatal (err)
 	}

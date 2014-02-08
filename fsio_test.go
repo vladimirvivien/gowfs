@@ -19,8 +19,8 @@ func Test_Create(t *testing.T){
 	conf := Configuration{Addr: url.Host }
 	fs, _ := NewFileSystem(conf)
 
-	u, err := fs.Create(
-		Path{Path:"/testing/newfile"},
+	p, err := fs.Create(
+		Path{Name:"/testing/newfile"},
 		false,
 		0,
 		0,
@@ -32,7 +32,7 @@ func Test_Create(t *testing.T){
 		t.Fatal (err)
 	}
 
-	if u.Path == "" {
+	if p.Name == "" {
 		t.Errorf ("URL does not contain expected value, expecting %v", "/testing/newfile")
 	}
 }
@@ -57,7 +57,7 @@ func Test_WriteFile(t *testing.T) {
 	u.RawQuery = vals.Encode()
 
 	data := []byte("Hello webhdfs users!")
-	if _, err := fs.Write (data, Path{Path:u.Path, RefererUrl:*u}); err != nil {
+	if _, err := fs.Write (data, Path{Name:u.Path, RefererUrl:*u}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -72,7 +72,7 @@ func Test_OpenAndRead(t *testing.T) {
 	conf := Configuration{Addr: url.Host }
 	fs, _ := NewFileSystem(conf)
 	
-	data, err := fs.OpenAndRead(Path{Path:"/test"}, 0, 512, 2048)
+	data, err := fs.OpenAndRead(Path{Name:"/test"}, 0, 512, 2048)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -96,13 +96,13 @@ func Test_OpenForAppend(t *testing.T){
 	conf := Configuration{Addr: url.Host }
 	fs, _ := NewFileSystem(conf)
 
-	u, err := fs.OpenForAppend(Path{Path:"/testing/existing.f"}, 4096)
+	p, err := fs.OpenForAppend(Path{Name:"/testing/existing.f"}, 4096)
 
 	if err != nil {
 		t.Fatal (err)
 	}
 
-	if u.Path == "" {
+	if p.Name == "" {
 		t.Errorf ("URL does not contain expected value, expecting %v", "/testing/newfile")
 	}
 }
@@ -124,7 +124,7 @@ func Test_Append(t *testing.T) {
 	u.RawQuery = vals.Encode()
 
 	data := []byte("Hello webhdfs users!")
-	if _, err := fs.Append (data, Path{Path:u.Path, RefererUrl:*u}); err != nil {
+	if _, err := fs.Append (data, Path{Name:u.Path, RefererUrl:*u}); err != nil {
 		t.Fatal(err)
 	}
 }
@@ -138,7 +138,7 @@ func Test_Concat(t *testing.T) {
 	conf := Configuration{Addr: url.Host }
 	fs, _ := NewFileSystem(conf)
 
-	_, err := fs.Concat(Path{Path:"/testing/concat.f"}, []string{"a/b/c", "e/f/g"})
+	_, err := fs.Concat(Path{Name:"/testing/concat.f"}, []string{"a/b/c", "e/f/g"})
 
 	if err != nil {
 		t.Fatal (err)

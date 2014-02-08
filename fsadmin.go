@@ -9,11 +9,11 @@ import "strconv"
 func (fs *FileSystem) Rename(source Path, destination Path) (bool, error) {
 	params := map[string]string{"op":OP_RENAME}
 
-	if source.Path == "" || destination.Path == "" {
+	if source.Name == "" || destination.Name == "" {
 		return false, fmt.Errorf("Rename() - params source and destination cannot be empty.")
 	}
 
-	params["destination"] = destination.Path
+	params["destination"] = destination.Name
 	u, err := buildRequestUrl(fs.Config, &source, &params)
 	if err != nil {
 		return false, err
@@ -81,11 +81,11 @@ func (fs *FileSystem) MkDirs(p Path, fm os.FileMode) (bool, error) {
 func (fs *FileSystem) CreateSymlink(dest Path, link Path, createParent bool) (bool, error) {
 	params := map[string]string{"op":OP_CREATESYMLINK}
 
-	if dest.Path == "" || link.Path == "" {
+	if dest.Name == "" || link.Name == "" {
 		return false, fmt.Errorf("CreateSymlink - param dest and link cannot be empty.")
 	}
 
-	params["destination"] 	= dest.Path
+	params["destination"] 	= dest.Name
 	params["createParent"]	= strconv.FormatBool(createParent)
 	u, err := buildRequestUrl(fs.Config, &link, &params)
 	if err != nil {

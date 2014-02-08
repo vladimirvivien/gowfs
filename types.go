@@ -19,7 +19,7 @@ type HdfsJsonData struct {
 }
 
 type Path struct {
-	Path 			string 		// Relative path representation (/root/leaf)
+	Name 			string 		// Relative path representation (/root/leaf)
 	RefererUrl 		url.URL 	// URL related to path (http://server:port/root/leaf)
 }
 

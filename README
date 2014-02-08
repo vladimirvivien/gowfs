@@ -8,6 +8,8 @@ go get github.com/vladimirvivien/gowfs
 
 import github.com/vladimirvivien/gowfs
 
+Examples
+--------
 See "github.com/vladimirvivien/gowfs-example" project for usage.
 
 NOTE: Ensure your HDFS deployment is confifured for WebHdfs.

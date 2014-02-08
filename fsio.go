@@ -74,7 +74,7 @@ func (fs *FileSystem) Create(
 		return Path{}, fmt.Errorf("Create() - did not receive a valid URL from server.")
 	}
 
-	return Path{Path:p.Path, RefererUrl:*u}, nil
+	return Path{Name:p.Name, RefererUrl:*u}, nil
 }
 
 // This function writes provied buffer to specified Path.RefererUrl.
@@ -175,7 +175,7 @@ func (fs *FileSystem) OpenForAppend(p Path, buffersize int)(Path, error){
 		return Path{}, fmt.Errorf("OpenForAppend() - did not receive a valid URL from server.")
 	}
 
-	return Path{Path:p.Path, RefererUrl:*u}, nil
+	return Path{Name:p.Name, RefererUrl:*u}, nil
 }
 
 func (fs *FileSystem) Append(data []byte, p Path)(bool, error){

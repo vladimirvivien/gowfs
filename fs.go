@@ -43,10 +43,10 @@ func buildRequestUrl(conf Configuration, p *Path, params *map[string]string) (*u
 
 	//prepare URL - add Path and "op" to URL
 	if p != nil {
-		if (p.Path[0] == '/'){
-			u.Path = u.Path + p.Path
+		if (p.Name[0] == '/'){
+			u.Path = u.Path + p.Name
 		}else{
-			u.Path = u.Path + "/" + p.Path
+			u.Path = u.Path + "/" + p.Name
 		}
 	}
 
