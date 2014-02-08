@@ -4,6 +4,8 @@ Gowfs is a Web Hadoop FileSystem (WebHDFS) client API in Go.
 
 For WebHDFS API detail, see http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/WebHDFS.html.
 
+Tested with Apache Hadoop 2.x.x - series.
+
 Usage
 -----
 go get github.com/vladimirvivien/gowfs
@@ -14,10 +16,11 @@ fs, err := gowfs.NewFileSystem(gowfs.Configuration{Addr: "localhost:50070, User:
 if err != nil{
 	log.Fatal(err)
 }
-checksum, err := fs.GetFileChecksum(gowfs.Path{Path: *path})
+checksum, err := fs.GetFileChecksum(gowfs.Path{Path: "location/to/file"})
 if err != nil {
 	log.Fatal(err)
 }
+fmt.Println (checksum)
 
 Confire HDFS
 ------------
