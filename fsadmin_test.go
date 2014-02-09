@@ -327,7 +327,7 @@ func mockServerFor_SetReplication() *httptest.Server{
       if q.Get("op") != OP_SETREPLICATION {
         log.Fatalf("Server Missing expected URL parameter: op= %v", OP_SETREPLICATION)
       }
-      rep, _ := strconv.Atoi(q.Get("permission"))
+      rep, _ := strconv.Atoi(q.Get("replication"))
 
       if rep <= 0 {
           log.Fatalf("Expected param replication [%v] is not valid.", rep)

@@ -120,7 +120,7 @@ func (fs *FileSystem) SetReplication(path Path, replication uint16)(bool, error)
 	}
 	params := map[string]string{
 		"op":OP_SETREPLICATION, 
-		"permission":strconv.FormatInt(int64(replication), 8)}
+		"replication":strconv.FormatInt(int64(replication), 8)}
 
 	u, err := buildRequestUrl(fs.Config, &path, &params)
 	if err != nil {
