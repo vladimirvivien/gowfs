@@ -15,6 +15,7 @@ type HdfsJsonData struct {
 	ContentSummary  ContentSummary
 	Token 			Token
 	Tokens 			Tokens
+	Long			int64
 	RemoteException RemoteException
 }
 

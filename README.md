@@ -1,3 +1,5 @@
+[![Build Status](https://drone.io/github.com/vladimirvivien/gowfs/status.png)](https://drone.io/github.com/vladimirvivien/gowfs/latest)
+
 ## gowfs 
 gowfs is a Go client API for the Hadoop Web FileSystem (WebHDFS).  It provides typed access to remote HDFS resources via Go's JSON marshaling system.  gowfs follows the WebHDFS JSON protocol outline in  http://hadoop.apache.org/docs/current/hadoop-project-dist/hadoop-hdfs/WebHDFS.html.  It has been tested with Apache Hadoop 2.x.x - series.
 
@@ -5,10 +7,10 @@ gowfs is a Go client API for the Hadoop Web FileSystem (WebHDFS).  It provides t
 ```
 go get github.com/vladimirvivien/gowfs
 ```
-``` go
+```go
 import github.com/vladimirvivien/gowfs
 ...
-fs, err := gowfs.NewFileSystem(gowfs.Configuration{Addr: "localhost:50070, User: "hdfs"})
+fs, err := gowfs.NewFileSystem(gowfs.Configuration{Addr: "localhost:50070", User: "hdfs"})
 if err != nil{
 	log.Fatal(err)
 }
