@@ -4,6 +4,7 @@ import "fmt"
 import "os"
 import "net/http"
 import "strconv"
+
 // Renames the specified path resource to a new name.
 // See HDFS FileSystem.rename()
 func (fs *FileSystem) Rename(source Path, destination Path) (bool, error) {

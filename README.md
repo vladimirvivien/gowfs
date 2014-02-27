@@ -20,8 +20,11 @@ if err != nil {
 }
 fmt.Println (checksum)
 ```
-##### Example Projects
+#### Example Projects
 To see how the API is used, check out the gowfs-example repository at https://github.com/vladimirvivien/gowfs-examples.
+
+#### GoDoc Package Documentation
+GoDoc documentation - https://godoc.org/github.com/vladimirvivien/gowfs
 
 ### HDFS Setup
 * Enable `dfs.webhdfs.enabled` property in your hsdfs-site.xml 

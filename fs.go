@@ -1,3 +1,6 @@
+/*
+ Package for all GoWfs, a WebHDFS client.
+*/
 package gowfs
 
 import "encoding/json"

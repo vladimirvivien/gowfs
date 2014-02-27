@@ -3,6 +3,7 @@ package gowfs
 import "fmt"
 import "errors"
 import "net/url"
+import "os/user"
 
 
 const WebHdfsVer string = "/webhdfs/v1"
@@ -10,7 +11,7 @@ const WebHdfsVer string = "/webhdfs/v1"
 type Configuration struct {
 	Addr string // host:port
 	BasePath string // initial base path to be appended
-	User string // user.name to use to connect
+	User string// user.name to use to connect
 }
 
 func (conf *Configuration) GetNameNodeUrl() (*url.URL, error) {
@@ -20,9 +21,11 @@ func (conf *Configuration) GetNameNodeUrl() (*url.URL, error) {
 
 	var urlStr string = fmt.Sprintf("http://%s%s%s", conf.Addr, WebHdfsVer, conf.BasePath)
 
-	if &conf.User != nil && len (conf.User) > 0{
-		urlStr = urlStr + "?user.name=" + conf.User
+	if &conf.User == nil  || len(conf.User) == 0{
+		u, _ := user.Current()
+		conf.User = u.Username
 	}
+	urlStr = urlStr + "?user.name=" + conf.User
 
 	u, err := url.Parse (urlStr)
 
