@@ -8,7 +8,7 @@ go get github.com/vladimirvivien/gowfs
 ``` go
 import github.com/vladimirvivien/gowfs
 ...
-fs, err := gowfs.NewFileSystem(gowfs.Configuration{Addr: "localhost:50070, User: "hdfs"})
+fs, err := gowfs.NewFileSystem(gowfs.Configuration{Addr: "localhost:50070", User: "hdfs"})
 if err != nil{
 	log.Fatal(err)
 }
