@@ -2,7 +2,9 @@ package gowfs
 
 import "os"
 import "bytes"
+import "fmt"
 import "io"
+import "path"
 import "io/ioutil"
 
 
@@ -59,10 +61,106 @@ func (shell FsShell) Cat (hdfsPaths []string, writr io.Writer) error {
 	return nil
 }
 
-// Changes the group association of the given hsfs paths
-// func (shell FsShell) Chgrp (hdfsPaths []string, grpName string) (bool, error) {
+// Changes the group association of the given hdfs paths.
+func (shell FsShell) Chgrp (hdfsPaths []string, grpName string) (bool, error) {
+	for _, path := range hdfsPaths{
+		_, err  := shell.FileSystem.SetOwner(Path{Name:path}, "",  grpName)
+		if err != nil {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
+// Changes the owner of the specified hdfs paths.
+func (shell FsShell) Chown (hdfsPaths []string, owner string) (bool, error) {
+	for _, path := range hdfsPaths{
+		_, err  := shell.FileSystem.SetOwner(Path{Name:path}, owner, "")
+		if err != nil {
+			return false, err
+		}
+	}
+	return true, nil
+}
+
+// Changes the filemode of the provided hdfs paths.
+func (shell FsShell) Chmod (hdfsPaths []string, perm os.FileMode) (bool, error) {
+	for _, path := range hdfsPaths {
+		_, err  := shell.FileSystem.SetPermission(Path{Name:path}, perm)
+		if err != nil {
+			return false,err
+		}
+	}
+	return true, nil
+}
+
+// Tests the existence of a remote HDFS file/directory.
+func (shell FsShell) Exists (hdfsPath string) (bool, error) {
+	_, err := shell.FileSystem.GetFileStatus(Path{Name:hdfsPath})
+	if remoteErr, ok := err.(RemoteException); 
+		ok && remoteErr.JavaClassName == "java.io.FileNotFoundException" {
+		return false, nil
+	}else{
+		return false, err /* a different err */
+	}
+	return true, nil
+}
+
+// Copies one specified local file to the remote HDFS server.
+// Uses default permission, blocksize, and replication.
+func (shell FsShell) PutOne(localFile string, hdfsPath string, overwrite bool) (bool, error) {
+	if _, err := os.Stat(localFile); os.IsNotExist(err) {
+		return false, fmt.Errorf("File %v not found.", localFile)
+	}
+
+	file, err := os.Open (localFile)
+	if err != nil {
+		return false, err
+	}
+	defer file.Close()
 	
-// }
+	// put as a new remote file
+	_, err = shell.FileSystem.Create(
+			file,
+			Path{Name:hdfsPath},
+			overwrite, 
+			134217728, 
+			3, 
+			0700, 
+			4096) 
+
+	if err != nil {
+		return false, err
+	}
+
+	return true, nil
+}
+
+// Copies sepcified local files to remote HDFS server.
+// The hdfsPath must be a directory (created if it does not exist).
+// Uses default permission, blocksize, and replication.
+func (shell FsShell) PutMany(files []string, hdfsPath string, overwrite bool) (bool, error) {
+	// if multiple files, put in remote directory
+	if len (files) > 1 {
+		stat, err := shell.FileSystem.GetFileStatus(Path{Name:hdfsPath})
+
+		// if remote dir missing, crete it.
+		if remoteErr := err.(RemoteException); 
+		   remoteErr.JavaClassName == "java.io.FileNotFoundException" {
+		   if _, err := shell.FileSystem.MkDirs(Path{Name:hdfsPath}, 0700); err != nil {
+		   		return false, err
+		   }
+		}
+		if stat.Type == "FILE"  {
+			return false, fmt.Errorf("HDFS resource %s must be a directory in this context.", hdfsPath)
+		}		
+	}
+	for _, file := range files {
+		shell.PutOne(file, hdfsPath + "/" + µ(path.Split(file))[1].(string), overwrite)
+	}
+	return true, nil
+}
+
 
 // TODO: slirp file in x Gbyte chunks when file.Stat() >> X.
 //       this is to avoid blow up memory on large files.

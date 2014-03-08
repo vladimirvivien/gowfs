@@ -133,6 +133,16 @@ type Tokens struct {
 /*
 	Type for returning WebHDFS error/exceptions.
 	See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#RemoteException_JSON_schema 
+
+Example:
+{
+  "RemoteException":
+  {
+    "exception"    : "FileNotFoundException",
+    "javaClassName": "java.io.FileNotFoundException",
+    "message"      : "File does not exist: /foo/a.patch"
+  }
+}
 */
 type RemoteException struct {
 	Exception 		string

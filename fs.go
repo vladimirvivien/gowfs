@@ -31,6 +31,11 @@ const (
 	OP_CANCELDELEGATIONTOKEN= "CANCELDELEGATIONTOKEN"
 )
 
+// Hack for in-lining multi-value functions
+func µ(v...interface{}) ([]interface{}){
+	return v
+}
+
 // This type maps fields and functions to HDFS's FileSystem class.
 type FileSystem struct {
 	Config Configuration

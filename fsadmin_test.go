@@ -82,7 +82,7 @@ func Test_SetOwner(t *testing.T){
 	}
 
 	if !ok {
-		t.Fatal("SetPermission() - is not working properly")
+		t.Fatal("SetOwner() - is not working properly")
 	}
 }
 
@@ -467,9 +467,9 @@ const fileStatusRsp =`
 `
 func mockServerFor_FileStatus() *httptest.Server {
 	handler := func (rsp http.ResponseWriter, req *http.Request){
-  	  	if req.Method != "GET"{
-  	    	log.Fatalf("Expecting Request.Method GET, but got %v", req.Method)
-  	  	}  	
+  	if req.Method != "GET"{
+  	    log.Fatalf("Expecting Request.Method GET, but got %v", req.Method)
+  	}  	
 		q := req.URL.Query()
 		if q.Get("op") != OP_GETFILESTATUS {
 			panic (`Server Missing expected URL parameter: op=` + OP_GETFILESTATUS)

@@ -32,7 +32,7 @@ func Test_Create(t *testing.T){
 		false,
 		0,
 		0,
-		0744,
+		0700,
 		0,
 	)
 
@@ -153,8 +153,8 @@ func mockServerFor_CreatFile(redir *url.URL) *httptest.Server {
       if q.Get("replication") != "3" {
           log.Fatalf("Expected param replciation to be 3, but was %v", q.Get("replication"))
       }
-      if q.Get("permission") != "744" {
-          log.Fatalf("Expected param offset to be 744, but was %v", q.Get("permission"))
+      if q.Get("permission") != "700" {
+          log.Fatalf("Expected param permission to be 700, but was %v", q.Get("permission"))
       }
       if q.Get("buffersize") != "4096" {
           log.Fatalf("Expected param offset to be 4096, but was %v", q.Get("buffersize"))
@@ -183,10 +183,10 @@ func mockServerFor_WriteFile() *httptest.Server {
           log.Fatalf("Expected param blocksize to be 134217728, but was %v", q.Get("blocksize"))
       }      
       if q.Get("replication") != "3" {
-          log.Fatalf("Expected param replciation to be 3, but was %v", q.Get("replication"))
+          log.Fatalf("Expected param replication to be 3, but was %v", q.Get("replication"))
       }
-      if q.Get("permission") != "744" {
-          log.Fatalf("Expected param offset to be 744, but was %v", q.Get("permission"))
+      if q.Get("permission") != "700" {
+          log.Fatalf("Expected param permission to be 700, but was %v", q.Get("permission"))
       }
       if q.Get("buffersize") != "4096" {
           log.Fatalf("Expected param offset to be 4096, but was %v", q.Get("buffersize"))
