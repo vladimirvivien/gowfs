@@ -3,10 +3,8 @@ package gowfs
 import "fmt"
 import "net/url"
 
-/*
-	Generic container type for FileSystem status information
-*/
 
+// Root level struct for data JSON data from WebHDFS.
 type HdfsJsonData struct {
 	Boolean			bool
 	FileStatus 		FileStatus
@@ -19,6 +17,7 @@ type HdfsJsonData struct {
 	RemoteException RemoteException
 }
 
+// Represents a remote webHDFS path
 type Path struct {
 	Name 			string 		// Relative path representation (/root/leaf)
 	RefererUrl 		url.URL 	// URL related to path (http://server:port/root/leaf)
@@ -27,6 +26,7 @@ type Path struct {
 
 // Represents HDFS FileStatus (FileSystem.getStatus())
 // See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#FileStatus_JSON_Schema
+//
 // Example:
 // {
 //   "FileStatus":
@@ -92,6 +92,7 @@ type ContentSummary struct {
 
 // 	Type for HDFS FileSystem.getFileChecksum()
 // 	See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#FileChecksum_JSON_Schema
+//
 // Example:
 // {
 //   "FileChecksum":
@@ -107,18 +108,17 @@ type FileChecksum struct {
     Length 		int64
 }
 
-/*
-	Type for HDFS FileSystem delegation token (FileSystem.getDelegationToken())
-	See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#Token_JSON_Schema
 
-Example:
-{
-  "Token":
-  {
-    "urlString": "JQAIaG9y..."
-  }
-}
-*/
+// Type for HDFS FileSystem delegation token (FileSystem.getDelegationToken())
+// See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#Token_JSON_Schema
+
+// Example:
+// {
+//   "Token":
+//   {
+//     "urlString": "JQAIaG9y..."
+//   }
+// }
 type Token struct {
 	UrlString string
 }
@@ -130,26 +130,25 @@ type Tokens struct {
 	Token []Token
 }
 
-/*
-	Type for returning WebHDFS error/exceptions.
-	See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#RemoteException_JSON_schema 
+// Type for returning WebHDFS error/exceptions.
+// See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#RemoteException_JSON_schema 
 
-Example:
-{
-  "RemoteException":
-  {
-    "exception"    : "FileNotFoundException",
-    "javaClassName": "java.io.FileNotFoundException",
-    "message"      : "File does not exist: /foo/a.patch"
-  }
-}
-*/
+// Example:
+// {
+//   "RemoteException":
+//   {
+//     "exception"    : "FileNotFoundException",
+//     "javaClassName": "java.io.FileNotFoundException",
+//     "message"      : "File does not exist: /foo/a.patch"
+//   }
+// }
 type RemoteException struct {
 	Exception 		string
 	JavaClassName 	string
 	Message 		string
 }
-// implements Error type
+
+// Implementation of error type.  Returns string representation of RemoteException.
 func (re RemoteException) Error() string {
 	return fmt.Sprintf("RemoteException: %v [%v]\n[%v]\n", re.Exception, re.JavaClassName, re.Message)
 }
