@@ -42,7 +42,7 @@ func Test_AppendToFile(t *testing.T) {
 }
 
 func Test_Cat(t *testing.T) {
-  	server1 := mockServerFor_FshellCat()
+  	server1 := mockServerFor_FsShellOpen()
   	defer server1.Close()
   	url, _  := url.Parse(server1.URL)
   	fs,  _  := NewFileSystem(Configuration{Addr: url.Host })
@@ -51,7 +51,7 @@ func Test_Cat(t *testing.T) {
 	var output bytes.Buffer
 	shell.Cat([]string{"/remote/file1", "/remote/file2"}, &output)
 	msgCat := strings.TrimSpace(string(output.Bytes()))
-	if msgCat != (fsShellCatRsp + "\n" + fsShellCatRsp) {
+	if msgCat != (fsShellOpenRsp + "\n" + fsShellOpenRsp) {
 		t.Fatal("FsShell.Cat() not getting content in writer.")
 	}
 
@@ -166,10 +166,34 @@ func Test_PutMany(t *testing.T) {
 	}
 }
 
+func Test_Get(t *testing.T) {
+  	server1 := mockServerFor_FsShellOpen()
+  	defer server1.Close()
+  	url, _  := url.Parse(server1.URL)
+  	fs,  _  := NewFileSystem(Configuration{Addr: url.Host })
+	shell   := FsShell{FileSystem: fs}
+
+	shell.Get("/remote/file", "test-file.txt")
+	file, err := os.Open("test-file.txt")
+	if err != nil {
+		t.Fatal(err)
+	}
+	defer file.Close()
+
+	data := make([]byte,len(fsShellOpenRsp))
+	c, err := file.Read(data)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if c != len(fsShellOpenRsp) {
+		t.Fatal("Expeting ", len(fsShellOpenRsp), " bytes, but got ", c)
+	}
+}
+
 func createTestFile(fileName string) (*os.File, error) {
 	file, err := os.Create(fileName)
 	if err != nil {
-		panic(err)
+		return nil, err
 	}
 	defer file.Close()
 	file.WriteString("Hello webhdfs users!")
@@ -179,15 +203,15 @@ func createTestFile(fileName string) (*os.File, error) {
 }
 
 // ******************************* Test Servers ****************************** //
-const fsShellCatRsp = `Hello! I am ready for the world.`
-func mockServerFor_FshellCat() *httptest.Server {
+const fsShellOpenRsp = `Hello! I am ready for the world.`
+func mockServerFor_FsShellOpen() *httptest.Server {
   handler := func (rsp http.ResponseWriter, req *http.Request){
   	q := req.URL.Query()
     if q.Get("op") == OP_GETFILESTATUS {
     	fmt.Fprintln (rsp, fileStatusRsp)
     }
     if q.Get("op") == OP_OPEN{
-    	fmt.Fprintln (rsp, fsShellCatRsp)
+    	fmt.Fprintln (rsp, fsShellOpenRsp)
     }
   }
   return httptest.NewServer(http.HandlerFunc(handler))	

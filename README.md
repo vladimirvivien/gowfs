@@ -14,7 +14,7 @@ fs, err := gowfs.NewFileSystem(gowfs.Configuration{Addr: "localhost:50070", User
 if err != nil{
 	log.Fatal(err)
 }
-checksum, err := fs.GetFileChecksum(gowfs.Path{Path: "location/to/file"})
+checksum, err := fs.GetFileChecksum(gowfs.Path{Name: "location/to/file"})
 if err != nil {
 	log.Fatal(err)
 }
@@ -33,10 +33,8 @@ GoDoc documentation - https://godoc.org/github.com/vladimirvivien/gowfs
 
 
 ### Limitations
-1. Very early implementation.
+1. Early implementation.
 2. Only "Simple" security mode supported.
-3. Not all methods are implemeted at this time.
-   Unimplemented methods will return an error.
 
 ##### Implemented
 ```
@@ -57,10 +55,6 @@ ListStatus()
 GetContentSummary()
 GetHomeDirectory()
 GetFileChecksum()
-```
-
-##### Unimplemented
-```
 GetDelegationToken()
 GetDelegationTokens()
 RenewToken()

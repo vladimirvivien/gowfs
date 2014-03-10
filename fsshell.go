@@ -161,6 +161,51 @@ func (shell FsShell) PutMany(files []string, hdfsPath string, overwrite bool) (b
 	return true, nil
 }
 
+// Retrieves a remote HDFS file and saves as the specified local file.
+func (shell FsShell) Get (hdfsPath, localFile string) (bool, error) {
+	file, err := os.Create(localFile)
+	if err != nil {
+		return false, err
+	}
+	defer file.Close()
+
+	reader, err := shell.FileSystem.Open(Path{Name:hdfsPath}, 0, 0, 0)
+	if err != nil {
+		return false, err
+	}
+	data, err := ioutil.ReadAll(reader)
+	if err != nil {
+		return false, err
+	}
+	defer reader.Close()
+
+	_, err = file.Write(data)
+	if err != nil {
+		return false, err
+	}
+	file.Sync()	
+	return true, nil
+}
+
+// Merges content of remote HDFS path into a single local file.
+func (shell FsShell) GetMerge(hdfsPath, localFile string)(bool, error){
+	return false, fmt.Errorf("Function is unimplemented.")
+}
+
+// Copies local file to remote destination, then local file is removed.
+func (shell FsShell) MoveFromLocal (localFile, hdfsPath string)(bool, error) {
+	return false, fmt.Errorf("Function is unimplemented.")
+}
+
+// Copies remote HDFS file locally.  The remote file is then removed.
+func (shell FsShell) MoveToLocal (hdfdsPath, localFile string)(bool, error) {
+	return false, fmt.Errorf("Function is unimplemented.")
+}
+
+// Removes the specified HDFS source.
+func (shell FsShell) Rm(hdfsPath string)(bool, error) {
+	return false, fmt.Errorf("Function is unimplemented.")
+}
 
 // TODO: slirp file in x Gbyte chunks when file.Stat() >> X.
 //       this is to avoid blow up memory on large files.

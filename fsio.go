@@ -99,7 +99,7 @@ func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadC
 	}
 
 	if buffSize <= 0 {
-		params["buffersize"] = "1024"
+		params["buffersize"] = "4096"
 	}else{
 		params["buffersize"] = strconv.Itoa(buffSize)
 	}
