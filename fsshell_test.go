@@ -292,3 +292,4 @@ func mockServerFor_PutOne(redir *url.URL) *httptest.Server {
   }
   return httptest.NewServer(http.HandlerFunc(handler))	
 }
+

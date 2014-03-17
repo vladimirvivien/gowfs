@@ -4,6 +4,7 @@
 package gowfs
 
 import "encoding/json"
+import "net"
 import "net/http"
 import "net/url"
 import "io/ioutil"
@@ -46,7 +47,19 @@ func NewFileSystem(conf Configuration) (*FileSystem, error){
 	fs := &FileSystem{
 		Config: conf, 
 	}
-	fs.client = http.Client {}
+
+	fs.client = http.Client {
+		Transport : &http.Transport {
+			Dial: func(netw, addr string) (net.Conn, error) {
+				c, err := net.DialTimeout(netw, addr, conf.ConnectionTimeout)
+				if err != nil {
+					return nil, err
+				}
+
+				return c, nil
+			},
+		},
+	}
 	return fs, nil
 }
 

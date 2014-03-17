@@ -122,11 +122,11 @@ func (shell FsShell) PutOne(localFile string, hdfsPath string, overwrite bool) (
 	// put as a new remote file
 	_, err = shell.FileSystem.Create(
 			file,
-			Path{Name:hdfsPath},
+			Path{Name:hdfsPath + "/" + µ(path.Split(localFile))[1].(string)},
 			overwrite, 
 			134217728, 
 			3, 
-			0700, 
+			0644, 
 			4096) 
 
 	if err != nil {
@@ -162,7 +162,7 @@ func (shell FsShell) PutMany(files []string, hdfsPath string, overwrite bool) (b
 }
 
 // Retrieves a remote HDFS file and saves as the specified local file.
-func (shell FsShell) Get (hdfsPath, localFile string) (bool, error) {
+func (shell FsShell) Get(hdfsPath, localFile string) (bool, error) {
 	file, err := os.Create(localFile)
 	if err != nil {
 		return false, err
@@ -188,17 +188,62 @@ func (shell FsShell) Get (hdfsPath, localFile string) (bool, error) {
 }
 
 // Merges content of remote HDFS path into a single local file.
-func (shell FsShell) GetMerge(hdfsPath, localFile string)(bool, error){
-	return false, fmt.Errorf("Function is unimplemented.")
-}
+// func (shell FsShell) GetMerge(hdfsPath, localFile string)(bool, error){
+// 	return false, fmt.Errorf("Function is unimplemented.")
+// }
 
 // Copies local file to remote destination, then local file is removed.
-func (shell FsShell) MoveFromLocal (localFile, hdfsPath string)(bool, error) {
-	return false, fmt.Errorf("Function is unimplemented.")
+func (shell FsShell) MoveFromLocal(localFile, hdfsPath string, overwrite bool)(bool, error) {
+	ok, err := shell.PutOne(localFile, hdfsPath, overwrite)
+	// validate operation, then remove local
+	if ok && err != nil {
+		hdfStat,  err := shell.FileSystem.GetFileStatus(Path{Name:hdfsPath})
+		if err != nil  {
+			return false, fmt.Errorf("Unable to verify remote file. ", err.Error())
+		}
+
+		file, err := os.Open(localFile)
+		if err != nil {
+			return false, fmt.Errorf("Unable to validate operation. ", err.Error())
+		}
+		if hdfStat.Length != µ(file.Stat())[0].(os.FileInfo).Size() {
+			return false, fmt.Errorf("Remote and local file size mismatch.")
+		}
+		file.Close() // close now.
+		err = os.Remove(localFile) // remove it.
+		if err != nil {
+			return false, err
+		}
+	}else{
+		return false, err
+	}
+	return true, nil
 }
 
 // Copies remote HDFS file locally.  The remote file is then removed.
-func (shell FsShell) MoveToLocal (hdfdsPath, localFile string)(bool, error) {
+func (shell FsShell) MoveToLocal(hdfsPath, localFile string)(bool, error) {
+	hdfStat,  err := shell.FileSystem.GetFileStatus(Path{Name:hdfsPath})
+	_, err = shell.Get(hdfsPath, localFile)
+	if err != nil {
+		return false, err
+	}
+
+	file, err := os.Open(localFile)
+	if err != nil {
+		return false, fmt.Errorf("Unable to access local file %s: %s", localFile, err.Error())
+	}
+	defer file.Close()
+
+	fileStat, err := file.Stat()
+	if err != nil {
+		return false, fmt.Errorf("Unable to access local file %s: %s", localFile, err.Error())
+	}
+
+	// ensure file was copied all the way
+	if hdfStat.Length != fileStat.Size() {
+		return false, fmt.Errorf("Local file size does not match remote file size. Aborting.")
+	} 
+
 	return false, fmt.Errorf("Function is unimplemented.")
 }
 

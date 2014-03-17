@@ -65,18 +65,18 @@ func (fs *FileSystem) Create(
 	loc := rsp.Header.Get("Location")
 	u, err = url.ParseRequestURI(loc)
 	if err != nil {
-		return false, fmt.Errorf("Create() - did not get a valid redirect URL from server.")
+		return false, fmt.Errorf("FileSystem.Create(%s) - invalid redirect URL from server: %s", u, err.Error())
 	}
 
 	req,   _ = http.NewRequest("PUT", u.String(), data) 
 	rsp, err = fs.client.Do(req)
 	if  err != nil  {
-		fmt.Errorf("Create() - bad url %s", loc)
+		fmt.Errorf("FileSystem.Create(%s) - bad url: %s", loc, err.Error())
 		return false, err
 	}
 
 	if rsp.StatusCode != http.StatusOK && rsp.StatusCode != http.StatusCreated {
-		return false, fmt.Errorf("Create() - File not created.  Server returned status %v", rsp.StatusCode)
+		return false, fmt.Errorf("FileSystem.Create(%s) - File not created.  Server returned status %v", loc, rsp.StatusCode)
 	}
 
 	return true, nil

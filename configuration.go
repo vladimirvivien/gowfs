@@ -2,8 +2,10 @@ package gowfs
 
 import "fmt"
 import "errors"
+import "time"
 import "net/url"
 import "os/user"
+
 
 
 const WebHdfsVer string = "/webhdfs/v1"
@@ -12,6 +14,19 @@ type Configuration struct {
 	Addr string // host:port
 	BasePath string // initial base path to be appended
 	User string// user.name to use to connect
+	ConnectionTimeout time.Duration
+	DisableKeepAlives bool
+	DisableCompression bool
+	ResponseHeaderTimeout time.Duration
+}
+
+func NewConfiguration() *Configuration {
+	return &Configuration {
+		ConnectionTimeout 		: time.Second * 17,
+		DisableKeepAlives 		: false,
+		DisableCompression		: true,
+		ResponseHeaderTimeout	: time.Second * 17,
+	}
 }
 
 func (conf *Configuration) GetNameNodeUrl() (*url.URL, error) {
