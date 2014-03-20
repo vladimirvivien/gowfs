@@ -18,7 +18,7 @@ type FsShell struct {
 }
 
 // Appends the specified list of local files to the HDFS path.
-func (shell FsShell) AppendToFile (filePaths []string, hdfsPath string) (bool, error) {
+func (shell FsShell) AppendToFile(filePaths []string, hdfsPath string) (bool, error) {
  
 	for _, path := range filePaths {
 		file, err := os.Open(path)

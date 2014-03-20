@@ -179,6 +179,7 @@ func Test_Get(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer file.Close()
+  defer os.Remove(file.Name())
 
 	data := make([]byte,len(fsShellOpenRsp))
 	c, err := file.Read(data)

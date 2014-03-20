@@ -94,6 +94,9 @@ func buildRequestUrl(conf Configuration, p *Path, params *map[string]string) (*u
 }
 
 func makeHdfsData(data []byte)(HdfsJsonData, error) {
+	if len(data) == 0 || data == nil {
+		return HdfsJsonData{}, nil
+	}
 	var jsonData HdfsJsonData
 	jsonErr := json.Unmarshal(data, &jsonData)
 
@@ -110,18 +113,22 @@ func makeHdfsData(data []byte)(HdfsJsonData, error) {
 
 }
 
-func requestHdfsData(client http.Client, req http.Request) (HdfsJsonData, error){
-	rsp, err := client.Do(&req)
-	if err != nil {
-		return HdfsJsonData{}, err
-	}
-
-	defer rsp.Body.Close()
+func responseToHdfsData(rsp *http.Response) (HdfsJsonData, error) {
 	body, err := ioutil.ReadAll(rsp.Body)
 	if err != nil {
 		return HdfsJsonData{}, err
 	}
 	return makeHdfsData(body)
+}
+
+func requestHdfsData(client http.Client, req http.Request) (HdfsJsonData, error){
+	rsp, err := client.Do(&req)
+	if err != nil {
+		return HdfsJsonData{}, err
+	}
+	defer rsp.Body.Close()
+	hdfsData, err := responseToHdfsData(rsp)
+	return hdfsData, err
 }
 
 

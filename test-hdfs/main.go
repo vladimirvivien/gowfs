@@ -6,6 +6,8 @@ import "log"
 import "os"
 import "path"
 import "os/user"
+import "strconv"
+import "time"
 import "vladimirvivien/gowfs"
 
 var uname string
@@ -32,12 +34,18 @@ func main() {
 	}
 
 	testConnection(fs)
-	listStats(fs, *path)
+	ls(fs, *path)
 	testDir := *path + "/test"
 	createTestDir(fs, testDir)
 	remoteFile := uploadTestFile(fs, *testData, testDir)
+	appendToRemoteFile(fs, *testData, remoteFile)
 	newRemoteFile :=testDir +"/"+ "peace-and-war.txt"
 	renameRemoteFile(fs, remoteFile, newRemoteFile)
+	changeOwner(fs, newRemoteFile)
+	changeGroup(fs, newRemoteFile)
+	changeMod(fs, newRemoteFile)
+	
+
 }
 
 func testConnection (fs *gowfs.FileSystem) {
@@ -48,16 +56,47 @@ func testConnection (fs *gowfs.FileSystem) {
 	log.Printf("Connected to server %s... OK.\n", fs.Config.Addr)
 }
 
-func listStats(fs *gowfs.FileSystem, hdfsPath string) {
+func ls(fs *gowfs.FileSystem, hdfsPath string) {
 	stats, err := fs.ListStatus(gowfs.Path{Name:hdfsPath})
 	if err != nil {
 		log.Fatal("Unable to list paths: ", err)
 	}
 	log.Printf("Found %d file(s) at %s\n", len(stats), hdfsPath)
 	for _, stat := range stats {
-		fmt.Printf ("%s%11d\t%s\n", stat.Type, stat.Length, stat.PathSuffix)
+		fmt.Printf(
+			"%-11s %3s %s\t%s\t%11d %20v %s\n", 
+			formatFileMode(stat.Permission, stat.Type), 
+			formatReplication(stat.Replication, stat.Type),
+			stat.Owner,
+			stat.Group,
+			stat.Length,
+			formatModTime(stat.ModificationTime),
+			stat.PathSuffix)	
 	}
 }
+
+func formatFileMode(webfsPerm string, fileType string) string {
+	perm, _ := strconv.ParseInt(webfsPerm, 8, 16)
+	fm := os.FileMode(perm)
+	if fileType == "DIRECTORY"{
+		fm = fm | os.ModeDir
+	}
+	return fm.String()
+}
+
+func formatReplication(rep int64, fileType string) string {
+	repStr := strconv.FormatInt(rep, 8)
+	if fileType == "DIRECTORY" {
+		repStr = "-"
+	}
+	return repStr
+}
+
+func formatModTime(modTime int64) string {
+	modTimeAdj := time.Unix((modTime/1000),0) // adjusted for Java Calendar in millis.
+	return modTimeAdj.Format("2006-01-02 15:04:05")
+}
+
 
 func createTestDir(fs *gowfs.FileSystem, hdfsPath string) {
 	path := gowfs.Path{Name:hdfsPath}
@@ -66,7 +105,7 @@ func createTestDir(fs *gowfs.FileSystem, hdfsPath string) {
 		log.Fatal("Unable to create test directory ", hdfsPath, ":", err)
 	}
 	log.Println ("HDFS Path ", path.Name, " created.")
-	listStats(fs, path.Name)
+	ls(fs, path.Name)
 }
 
 func uploadTestFile(fs *gowfs.FileSystem, testFile, hdfsPath string) string {
@@ -89,7 +128,7 @@ func uploadTestFile(fs *gowfs.FileSystem, testFile, hdfsPath string) string {
 	_, fileName := path.Split(file.Name())
 	log.Println ("File ", fileName, " Copied OK.")
 	remoteFile := hdfsPath + "/" + fileName
-	listStats(fs, remoteFile)
+	ls(fs, remoteFile)
 
 	return remoteFile
 }
@@ -100,6 +139,82 @@ func renameRemoteFile(fs *gowfs.FileSystem, oldName, newName string) {
 		log.Fatal("Unable to rename remote file ", oldName, " to ", newName)
 	}
 	log.Println ("HDFS file ", oldName, " renamed to ", newName)
-	listStats(fs, newName)
+	ls(fs, newName)
 }
 
+func changeOwner(fs *gowfs.FileSystem, hdfsPath string) {
+	shell := gowfs.FsShell{FileSystem:fs}
+	_, err := shell.Chown([]string{hdfsPath}, "owner2")
+	if err != nil  {
+		log.Fatal("Chown failed for ", hdfsPath, ": ", err.Error())
+	}
+	stat, err := fs.GetFileStatus(gowfs.Path{Name:hdfsPath})
+	if err != nil  {
+		log.Fatal("Unable to validate chown() operation: ", err.Error())
+	}
+	if stat.Owner == "owner2"{
+		log.Println ("Chown for ", hdfsPath, " OK ")
+		ls(fs, hdfsPath)
+	}else{
+		log.Fatal("Chown() failed.")
+	}
+}
+
+func changeGroup(fs *gowfs.FileSystem, hdfsPath string) {
+	shell := gowfs.FsShell{FileSystem:fs}
+	_, err := shell.Chgrp([]string{hdfsPath}, "superduper")
+	if err != nil  {
+		log.Fatal("Chgrp failed for ", hdfsPath, ": ", err.Error())
+	}
+	stat, err := fs.GetFileStatus(gowfs.Path{Name:hdfsPath})
+	if err != nil  {
+		log.Fatal("Unable to validate chgrp() operation: ", err.Error())
+	}
+	if stat.Group == "superduper"{
+		log.Println ("Chgrp for ", hdfsPath, " OK ")
+		ls(fs, hdfsPath)
+	}else{
+		log.Fatal("Chgrp() failed.")
+	}
+}
+
+func changeMod(fs *gowfs.FileSystem, hdfsPath string) {
+	shell := gowfs.FsShell{FileSystem:fs}
+	_, err := shell.Chmod([]string{hdfsPath}, 0744)
+	if err != nil  {
+		log.Fatal("Chmod() failed for ", hdfsPath, ": ", err.Error())
+	}
+	stat, err := fs.GetFileStatus(gowfs.Path{Name:hdfsPath})
+	if err != nil  {
+		log.Fatal("Unable to validate Chmod() operation: ", err.Error())
+	}
+	if stat.Permission == "744"{
+		log.Println ("Chmod for ", hdfsPath, " OK ")
+		ls(fs, hdfsPath)
+	}else{
+		log.Fatal("Chmod() failed.")
+	}
+}
+
+func appendToRemoteFile(fs *gowfs.FileSystem, localFile, hdfsPath string) {
+	stat, err := fs.GetFileStatus(gowfs.Path{Name:hdfsPath})
+	if err != nil {
+		log.Fatal("Unable to get file info for ", hdfsPath, ":", err.Error())
+	}
+	shell := gowfs.FsShell{FileSystem:fs}
+	_, err = shell.AppendToFile([]string{localFile}, hdfsPath)
+	if err != nil {
+		log.Fatal("AppendToFile() failed: ", err.Error())
+	}
+
+	stat2, err := fs.GetFileStatus(gowfs.Path{Name:hdfsPath})
+	if err != nil {
+		log.Fatal("Something went wrong, unable to get file info:", err.Error())
+	}
+	if stat2.Length > stat.Length {
+		log.Println ("AppendToFile() for ", hdfsPath, " OK.")
+		ls(fs, hdfsPath)
+	}else{
+		log.Fatal("AppendToFile failed. File size for ", hdfsPath, " expected to be larger.")
+	}
+}

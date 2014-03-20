@@ -185,8 +185,8 @@ func mockServerFor_WriteFile() *httptest.Server {
       if q.Get("replication") != "3" {
           log.Fatalf("Expected param replication to be 3, but was %v", q.Get("replication"))
       }
-      if q.Get("permission") != "700" {
-          log.Fatalf("Expected param permission to be 700, but was %v", q.Get("permission"))
+      if q.Get("permission") == "" {
+          log.Fatalf("Expected param permission, but was empty.")
       }
       if q.Get("buffersize") != "4096" {
           log.Fatalf("Expected param offset to be 4096, but was %v", q.Get("buffersize"))
@@ -252,7 +252,7 @@ func mockServerFor_Append() *httptest.Server {
           log.Fatalf("Expected data not posted to server. Server got %v", string(data))
       }
 
-      rsp.WriteHeader(http.StatusCreated)
+      rsp.WriteHeader(http.StatusOK)
       fmt.Fprintf (rsp, "")
   }
   
