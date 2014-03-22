@@ -242,9 +242,15 @@ func (shell FsShell) MoveToLocal(hdfsPath, localFile string)(bool, error) {
 	// ensure file was copied all the way
 	if hdfStat.Length != fileStat.Size() {
 		return false, fmt.Errorf("Local file size does not match remote file size. Aborting.")
-	} 
+	}
 
-	return false, fmt.Errorf("Function is unimplemented.")
+	// remove remote File
+	ok, err := shell.FileSystem.Delete(Path{Name:hdfsPath}, false)
+	if err != nil {
+		return false, fmt.Errorf("Unable to remove remote %s file: %s", hdfsPath, err.Error())
+	}
+
+	return ok, nil
 }
 
 // Removes the specified HDFS source.

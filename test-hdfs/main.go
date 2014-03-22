@@ -44,8 +44,7 @@ func main() {
 	changeOwner(fs, newRemoteFile)
 	changeGroup(fs, newRemoteFile)
 	changeMod(fs, newRemoteFile)
-	
-
+	moveRemoteFileLocal(fs, newRemoteFile)	
 }
 
 func testConnection (fs *gowfs.FileSystem) {
@@ -217,4 +216,27 @@ func appendToRemoteFile(fs *gowfs.FileSystem, localFile, hdfsPath string) {
 	}else{
 		log.Fatal("AppendToFile failed. File size for ", hdfsPath, " expected to be larger.")
 	}
+}
+
+func moveRemoteFileLocal(fs *gowfs.FileSystem, remoteFile string) {
+	log.Println ("Moving Remote file!!")
+	shell := gowfs.FsShell{FileSystem:fs}
+	remotePath, fileName := path.Split(remoteFile)
+	_, err := shell.MoveToLocal(remoteFile, fileName)
+	if err != nil {
+		log.Fatal("MoveToLocal() failed: ", err.Error())
+	}
+	file, err := os.Open(fileName)
+	if err != nil {
+		log.Fatal("MoveToLocal() - local file can't be open. ")
+	}
+	defer file.Close()
+	defer os.Remove(file.Name())
+
+	_, err = fs.GetFileStatus(gowfs.Path{Name:remoteFile})
+	if err == nil {
+		log.Fatal("Expecing a FileNotFoundException, but file is found. ", remoteFile, ": ", err.Error())
+	}
+	log.Printf("Remote file %s has been removed Ok", remoteFile)
+	ls(fs, remotePath)
 }

@@ -75,7 +75,12 @@ func (fs *FileSystem) Create(
 		return false, err
 	}
 
-	if rsp.StatusCode != http.StatusOK && rsp.StatusCode != http.StatusCreated {
+	if rsp.StatusCode != http.StatusCreated {
+		defer rsp.Body.Close()
+		_, err = responseToHdfsData(rsp)
+		if err != nil {
+			return false, err
+		}
 		return false, fmt.Errorf("FileSystem.Create(%s) - File not created.  Server returned status %v", loc, rsp.StatusCode)
 	}
 
@@ -114,6 +119,16 @@ func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadC
 	if err != nil {
 		return nil, err
 	}
+
+	// possible error
+	if rsp.StatusCode != http.StatusOK {
+		defer rsp.Body.Close()
+		_, err = responseToHdfsData(rsp)
+		if err != nil {
+			return nil, err
+		}
+	}
+
 	return rsp.Body, nil
 }
 
@@ -155,15 +170,16 @@ func (fs *FileSystem) Append(data io.Reader, p Path, buffersize int)(bool, error
 	if  err != nil  {
 		return false, err
 	}
-	defer rsp.Body.Close()
-	_, err = responseToHdfsData(rsp)
-	if err != nil {
-		return false, err
-	}
 
-	if rsp.StatusCode != http.StatusOK  {
+	if rsp.StatusCode != http.StatusOK {
+		defer rsp.Body.Close()
+		_, err = responseToHdfsData(rsp)
+		if err != nil {
+			return false, err
+		}
 		return false, fmt.Errorf("Append(%s) - File not created.  Server returned status %v", loc, rsp.StatusCode)
 	}
+
 	return true, nil
 }
 
@@ -186,8 +202,13 @@ func (fs *FileSystem) Concat(target Path, sources []string)(bool, error) {
 	if err != nil {
 		return false, err
 	}
-	if rsp.StatusCode != http.StatusOK && rsp.ContentLength != 0 {
-		return false, fmt.Errorf("Concat() - Server returned unexpected result.")
+	if rsp.StatusCode != http.StatusOK {
+		defer rsp.Body.Close()
+		_, err = responseToHdfsData(rsp)
+		if err != nil {
+			return false, err
+		}
+		return false, fmt.Errorf("Concat(%s) - File not concatenated.  Server returned status %v", u.String(), rsp.StatusCode)
 	}
 	return true, nil
 }
