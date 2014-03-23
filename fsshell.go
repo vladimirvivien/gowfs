@@ -108,7 +108,7 @@ func (shell FsShell) Exists (hdfsPath string) (bool, error) {
 
 // Copies one specified local file to the remote HDFS server.
 // Uses default permission, blocksize, and replication.
-func (shell FsShell) PutOne(localFile string, hdfsPath string, overwrite bool) (bool, error) {
+func (shell FsShell) Put(localFile string, hdfsPath string, overwrite bool) (bool, error) {
 	if _, err := os.Stat(localFile); os.IsNotExist(err) {
 		return false, fmt.Errorf("File %v not found.", localFile)
 	}
@@ -156,7 +156,7 @@ func (shell FsShell) PutMany(files []string, hdfsPath string, overwrite bool) (b
 		}		
 	}
 	for _, file := range files {
-		shell.PutOne(file, hdfsPath + "/" + µ(path.Split(file))[1].(string), overwrite)
+		shell.Put(file, hdfsPath + "/" + µ(path.Split(file))[1].(string), overwrite)
 	}
 	return true, nil
 }
@@ -194,7 +194,7 @@ func (shell FsShell) Get(hdfsPath, localFile string) (bool, error) {
 
 // Copies local file to remote destination, then local file is removed.
 func (shell FsShell) MoveFromLocal(localFile, hdfsPath string, overwrite bool)(bool, error) {
-	ok, err := shell.PutOne(localFile, hdfsPath, overwrite)
+	ok, err := shell.Put(localFile, hdfsPath, overwrite)
 	// validate operation, then remove local
 	if ok && err != nil {
 		hdfStat,  err := shell.FileSystem.GetFileStatus(Path{Name:hdfsPath})

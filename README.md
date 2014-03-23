@@ -130,7 +130,7 @@ shell := gowfs.FsShell{FileSystem:fs}
 #### FsShell.Put()
 Use the put to upload a local file to an HDFS file system. See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.PutOne
 ```go
-ok, err := shell.PutOne("local/file/name", "hdfs/file/path", true)
+ok, err := shell.Put("local/file/name", "hdfs/file/path", true)
 ```
 #### FsShell.Get()
 Use the Get to retrieve remote HDFS file to local file system. See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.Get
@@ -161,8 +161,8 @@ Change file mod of remote HDFS files.  See https://godoc.org/github.com/vladimir
 ok, err := shell.Chmod([]string{"/remote/hdfs/file/"}, 0744)
 ```
 
-### Local HDFS Test
-You can test the API against your local HDFS installation using https://github.com/vladimirvivien/gowfs/tree/master/test-hdfs.  Follow the instructions there to run the local test.
+### More Usage Examples - Local HDFS Test
+You can see more examples of GoWfs usage in directory `test-hdfs`. Use it to test the API against your local HDFS installation.  See https://github.com/vladimirvivien/gowfs/tree/master/test-hdfs.
 
 ### Limitations
 1. Only "SIMPLE" security mode supported.

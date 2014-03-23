@@ -128,7 +128,7 @@ func Test_PutOne(t *testing.T) {
   	fs,  _ := NewFileSystem(Configuration{Addr: url.Host })
 	shell := FsShell{FileSystem: fs}
 
-	_, err = shell.PutOne (f1.Name(), "/test/remote/file", false)
+	_, err = shell.Put(f1.Name(), "/test/remote/file", false)
 	if err != nil {
 		t.Fatal(err)
 	}

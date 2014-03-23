@@ -120,7 +120,7 @@ func uploadTestFile(fs *gowfs.FileSystem, testFile, hdfsPath string) string {
 
 	shell := gowfs.FsShell{FileSystem:fs}
 	log.Println("Sending file ", file.Name(), " to HDFS location ", hdfsPath)
-	ok, err := shell.PutOne(file.Name(), hdfsPath, true)
+	ok, err := shell.Put(file.Name(), hdfsPath, true)
 	if err != nil || !ok {
 		log.Fatal ("Failed during test file upload: ", err)
 	}
