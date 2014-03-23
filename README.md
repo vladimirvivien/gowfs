@@ -132,6 +132,11 @@ Use the put to upload a local file to an HDFS file system. See https://godoc.org
 ```go
 ok, err := shell.PutOne("local/file/name", "hdfs/file/path", true)
 ```
+#### FsShell.Get()
+Use the Get to retrieve remote HDFS file to local file system. See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.Get
+```go
+ok, err := shell.Get("hdfs/file/path", "local/file/name")
+```
 
 #### FsShell.AppendToFile()
 Append local files to remote HDFS file or directory. See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.AppendToFile
@@ -141,7 +146,23 @@ ok, err := shell.AppendToFile([]string{"local/file/1", "local/file/2"}, "remote/
 #### FsShell.Chown()
 Change owner for remote file.  See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.Chown.
 ```go
-ok, err := shell.Chown([]string{hdfsPath}, "owner2")
+ok, err := shell.Chown([]string{"/remote/hdfs/file"}, "owner2")
+```
+
+#### FsShell.Chgrp()
+Change group of remote HDFS files.  See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.Chgrp
+```go
+ok, err := shell.Chgrp([]string{"/remote/hdfs/file"}, "superduper")
+```
+
+#### FsShell.Chmod()
+Change file mod of remote HDFS files.  See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.Chmod
+```go
+ok, err := shell.Chmod([]string{"/remote/hdfs/file/"}, 0744)
+```
+
+### Local HDFS Test
+You can test the API against your local HDFS installation using https://github.com/vladimirvivien/gowfs/tree/master/test-hdfs.  Follow the instructions there to run the local test.
 
 ### Limitations
 1. Only "SIMPLE" security mode supported.

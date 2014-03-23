@@ -1,5 +1,7 @@
 /*
- Package for all GoWfs, a WebHDFS client.
+gowfs is Go bindings for the Hadoop HDFS over its WebHDFS interface.  
+gowfs uses the JSON marshalling to expose typed values from HDFS.
+See https://github.com/vladimirvivien/gowfs.
 */
 package gowfs
 
