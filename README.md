@@ -32,8 +32,8 @@ GoDoc documentation - https://godoc.org/github.com/vladimirvivien/gowfs
 
 ### FileSystem Examples
 
-#### Create Configuration
-Use the `Configuration` struct to specify paramters for the file system.  You can create configuration either using a `Configuration{}` literal or using NewConfiguration() for defaults. 
+#### Configuration{}
+Use the `Configuration{}` struct to specify paramters for the file system.  You can create configuration either using a `Configuration{}` literal or using `NewConfiguration()` for defaults. 
 
 ```
 conf := *gowfs.NewConfiguration()
@@ -43,13 +43,13 @@ conf.ConnectionTime = time.Second * 15
 conf.DisableKeepAlives = false 
 ```
 
-#### Create FileSystem 
-Create a new `FileSystem` struct before you can make call to any functions. 
+#### FileSystem{}
+Create a new `FileSystem{}` struct before you can make call to any functions. 
 ```
 fs, err := gowfs.NewFileSystem(conf)
 ```
 
-#### Create File
+#### FileSystem.Create()
 Create and store a remote file on the HDFS server.
 See https://godoc.org/github.com/vladimirvivien/gowfs#FileSystem.Create
 ```
@@ -64,13 +64,13 @@ ok, err := fs.Create(
 )
 ```
 
-#### Open File
+#### FileSystem.Open()
 Use the FileSystem.Open() to open and read a remote file from HDFS.  See https://godoc.org/github.com/vladimirvivien/gowfs#FileSystem.Open
 ```
     data, err := fs.Open(gowfs.Path{Name:"/remote/file"}, 0, 512, 2048)
 ```
 
-#### Append to File
+#### FileSystem.Append()
 To append to an existing file on HDFS.  See https://godoc.org/github.com/vladimirvivien/gowfs#FileSystem.Append
 ```
 ok, err := fs.Append(
@@ -78,23 +78,70 @@ ok, err := fs.Append(
     gowfs.Path{Name:"/remote/file"}, 4096)
 ```
 
-#### Rename File
+#### FileSystem.Rename()
 Use FileSystem.Rename() to rename HDFS files. See https://godoc.org/github.com/vladimirvivien/gowfs#FileSystem.Rename
 ```
 ok, err := fs.Rename(gowfs.Path{Name:"/old/name"}, Path{Name:"/new/name"})
 ```
 
-#### Delete File
+#### FileSystem.Delete()
 To delete an HDFS file use FileSyste.Delete().  See https://godoc.org/github.com/vladimirvivien/gowfs#FileSystem.Delete
-```
+```go
 ok, err := fs.Delete(gowfs.Path{Name:"/remote/file/todelete"}, false)
 ```
 
-#### Set File Permission
-Use FileSystem.SetPermission().  See https://godoc.org/github.com/vladimirvivien/gowfs#FileSystem.SetPermission
+#### FileSystem.GetFileStatus()
+You can get status about an existing HDFS file using FileSystem.GetFileStatus(). See https://godoc.org/github.com/vladimirvivien/gowfs#FileSystem.GetFileStatus
+
+```go
+fileStatus, err := fs.GetFileStatus(gowfs.Path{Name:"/remote/file"})
 ```
-ok, err := fs.SetPermission(gowfs.Path{Name:"/remote/file"}, 0744)
+FileStatus is a struct with status info about remote file.
+```go
+type FileStatus struct {
+	AccesTime int64
+    BlockSize int64
+    Group string
+    Length int64
+    ModificationTime int64
+    Owner string
+    PathSuffix string
+    Permission string
+    Replication int64
+    Type string
+}
 ```
+You can get a list of file stats using FileSystem.ListStatus()
+```go
+stats, err := fs.ListStatus(gowfs.Path{Name:"/remote/directory"})
+for _, stat := range stats {
+    fmt.Println(stat.PathSuffix, stat.Length)
+}
+```
+
+### FsShell Examples
+While the `FileSystem` type has the low level functions, use the `FsShell` to access a higher level of abstraction when working with HDFS.  FsShell functions are integrated with the local file system for easier usage.
+
+#### Create the FsShell
+To create an FsShell, you need to have an existing instance of FileSystem.
+```go
+shell := gowfs.FsShell{FileSystem:fs}
+```
+#### FsShell.Put()
+Use the put to upload a local file to an HDFS file system. See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.PutOne
+```go
+ok, err := shell.PutOne("local/file/name", "hdfs/file/path", true)
+```
+
+#### FsShell.AppendToFile()
+Append local files to remote HDFS file or directory. See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.AppendToFile
+```go
+ok, err := shell.AppendToFile([]string{"local/file/1", "local/file/2"}, "remote/hdfs/path")
+```
+#### FsShell.Chown()
+Change owner for remote file.  See https://godoc.org/github.com/vladimirvivien/gowfs#FsShell.Chown.
+```go
+ok, err := shell.Chown([]string{hdfsPath}, "owner2")
 
 ### Limitations
 1. Only "SIMPLE" security mode supported.
