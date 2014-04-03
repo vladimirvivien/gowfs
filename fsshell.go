@@ -97,11 +97,13 @@ func (shell FsShell) Chmod (hdfsPaths []string, perm os.FileMode) (bool, error) 
 // Tests the existence of a remote HDFS file/directory.
 func (shell FsShell) Exists (hdfsPath string) (bool, error) {
 	_, err := shell.FileSystem.GetFileStatus(Path{Name:hdfsPath})
-	if remoteErr, ok := err.(RemoteException); 
-		ok && remoteErr.JavaClassName == "java.io.FileNotFoundException" {
-		return false, nil
-	}else{
-		return false, err /* a different err */
+	if err != nil {
+		if remoteErr, ok := err.(RemoteException); 
+			ok && remoteErr.JavaClassName == "java.io.FileNotFoundException" {
+			return false, nil
+		} else {
+			return false, err /* a different err */
+		}
 	}
 	return true, nil
 }
