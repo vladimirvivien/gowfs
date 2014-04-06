@@ -42,7 +42,7 @@ Use the `Configuration{}` struct to specify paramters for the file system.  You 
 ```
 conf := *gowfs.NewConfiguration()
 conf.Addr = "localhost:50070"
-conf.Username = "hdfs"
+conf.User = "hdfs"
 conf.ConnectionTime = time.Second * 15
 conf.DisableKeepAlives = false 
 ```
