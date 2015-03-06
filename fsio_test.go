@@ -67,6 +67,22 @@ func Test_Open(t *testing.T) {
 	}
 }
 
+func Test_OpenFails(t *testing.T) {
+	server := httptest.NewServer(code(404))
+	defer server.Close()
+	t.Logf("Started httptest.Server on %v", server.URL)
+
+	url,_ := url.Parse(server.URL)
+
+	conf := Configuration{Addr: url.Host }
+	fs, _ := NewFileSystem(conf)
+	
+	_ , err := fs.Open(Path{Name:"/DOES-NOT-EXIST"}, 0, 512, 2048)
+	if err == nil {
+		t.Fatal("expected to fail due to missing file, but didn't")
+	}
+}
+
 func Test_Append(t *testing.T){
 // start a new server to handle redirect
   server1 := mockServerFor_Append()
@@ -113,6 +129,12 @@ func Test_Concat(t *testing.T) {
 
 // ***************************** Mock Servers for Tests **********************//
 
+type code int
+
+func (h code) ServeHTTP(w http.ResponseWriter, r *http.Request) {
+	w.WriteHeader(int(h))
+}
+
 func mockServerFor_OpenAndRead() *httptest.Server{
   handler := func (rsp http.ResponseWriter, req *http.Request){
   	  if req.Method != "GET"{
@@ -136,7 +158,6 @@ func mockServerFor_OpenAndRead() *httptest.Server{
   }
   return httptest.NewServer(http.HandlerFunc(handler))
 }
-
 
 func mockServerFor_CreatFile(redir *url.URL) *httptest.Server {
   handler := func (rsp http.ResponseWriter, req *http.Request){
