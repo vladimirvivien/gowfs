@@ -127,6 +127,8 @@ func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadC
 		if err != nil {
 			return nil, err
 		}
+
+		return nil, fmt.Errorf("Open(%s) - File not opened.  Server returned status %v", p.Name, rsp.StatusCode)
 	}
 
 	return rsp.Body, nil
