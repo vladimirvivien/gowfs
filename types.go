@@ -3,26 +3,24 @@ package gowfs
 import "fmt"
 import "net/url"
 
-
 // Root level struct for data JSON data from WebHDFS.
 type HdfsJsonData struct {
-	Boolean			bool
-	FileStatus 		FileStatus
-	FileStatuses 	FileStatuses
-	FileChecksum 	FileChecksum
+	Boolean         bool
+	FileStatus      FileStatus
+	FileStatuses    FileStatuses
+	FileChecksum    FileChecksum
 	ContentSummary  ContentSummary
-	Token 			Token
-	Tokens 			Tokens
-	Long			int64
+	Token           Token
+	Tokens          Tokens
+	Long            int64
 	RemoteException RemoteException
 }
 
 // Represents a remote webHDFS path
 type Path struct {
-	Name 			string 		// Relative path representation (/root/leaf)
-	RefererUrl 		url.URL 	// URL related to path (http://server:port/root/leaf)
+	Name       string  // Relative path representation (/root/leaf)
+	RefererUrl url.URL // URL related to path (http://server:port/root/leaf)
 }
-
 
 // Represents HDFS FileStatus (FileSystem.getStatus())
 // See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#FileStatus_JSON_Schema
@@ -44,18 +42,17 @@ type Path struct {
 //   }
 // }
 type FileStatus struct {
-	AccesTime int64
-    BlockSize int64
-    Group string
-    Length int64
-    ModificationTime int64
-    Owner string
-    PathSuffix string
-    Permission string
-    Replication int64
-    Type string
+	AccesTime        int64
+	BlockSize        int64
+	Group            string
+	Length           int64
+	ModificationTime int64
+	Owner            string
+	PathSuffix       string
+	Permission       string
+	Replication      int64
+	Type             string
 }
-
 
 // Container type for multiple FileStatus for directory, etc
 // (see HDFS FileSystem.listStatus())
@@ -63,7 +60,6 @@ type FileStatus struct {
 type FileStatuses struct {
 	FileStatus []FileStatus
 }
-
 
 // 	Type for HDFS FileSystem content summary (FileSystem.getContentSummary())
 // 	See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#ContentSummary_JSON_Schema
@@ -81,14 +77,13 @@ type FileStatuses struct {
 //   }
 // }
 type ContentSummary struct {
-    DirectoryCount 	int64
-    FileCount 		int64
-    Length 			int64
-    Quota 			int64
-    SpaceConsumed 	int64
-    SpaceQuota 		int64
+	DirectoryCount int64
+	FileCount      int64
+	Length         int64
+	Quota          int64
+	SpaceConsumed  int64
+	SpaceQuota     int64
 }
-
 
 // 	Type for HDFS FileSystem.getFileChecksum()
 // 	See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#FileChecksum_JSON_Schema
@@ -101,13 +96,12 @@ type ContentSummary struct {
 //     "bytes"    : "eadb10de24aa315748930df6e185c0d ...",
 //     "length"   : 28
 //   }
-// }	
+// }
 type FileChecksum struct {
-    Algorithm 	string
-    Bytes 		string
-    Length 		int64
+	Algorithm string
+	Bytes     string
+	Length    int64
 }
-
 
 // Type for HDFS FileSystem delegation token (FileSystem.getDelegationToken())
 // See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#Token_JSON_Schema
@@ -131,7 +125,7 @@ type Tokens struct {
 }
 
 // Type for returning WebHDFS error/exceptions.
-// See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#RemoteException_JSON_schema 
+// See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#RemoteException_JSON_schema
 
 // Example:
 // {
@@ -143,9 +137,9 @@ type Tokens struct {
 //   }
 // }
 type RemoteException struct {
-	Exception 		string
-	JavaClassName 	string
-	Message 		string
+	Exception     string
+	JavaClassName string
+	Message       string
 }
 
 // Implementation of error type.  Returns string representation of RemoteException.

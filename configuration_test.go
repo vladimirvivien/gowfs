@@ -1,10 +1,9 @@
 package gowfs
 
-
 import "testing"
 
 func Test_GetNameNodeUrl(t *testing.T) {
-	conf := Configuration{Addr:"localhost:8080", BasePath:"/test/gofs", User:"vvivien"}
+	conf := Configuration{Addr: "localhost:8080", BasePath: "/test/gofs", User: "vvivien"}
 	u, err := conf.GetNameNodeUrl()
 
 	if err != nil {

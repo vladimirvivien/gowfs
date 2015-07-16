@@ -27,14 +27,14 @@ func Test_AppendToFile(t *testing.T) {
 
 	//start servers
 	// two stages 1) server2 is invoked, then redirect to server1.URL
-  	server1 := mockServerFor_Append()
-  	servUrl, _ := url.Parse(server1.URL)
-  	server2 := mockServerFor_OpenForAppend(servUrl)
-  	defer server2.Close()
-  	defer server1.Close()
+	server1 := mockServerFor_Append()
+	servUrl, _ := url.Parse(server1.URL)
+	server2 := mockServerFor_OpenForAppend(servUrl)
+	defer server2.Close()
+	defer server1.Close()
 
-  	url, _ := url.Parse(server2.URL)
-  	fs,  _ := NewFileSystem(Configuration{Addr: url.Host })
+	url, _ := url.Parse(server2.URL)
+	fs, _ := NewFileSystem(Configuration{Addr: url.Host})
 	shell := FsShell{FileSystem: fs}
 
 	shell.AppendToFile([]string{f1.Name(), f2.Name()}, "/testing/location")
@@ -42,11 +42,11 @@ func Test_AppendToFile(t *testing.T) {
 }
 
 func Test_Cat(t *testing.T) {
-  	server1 := mockServerFor_FsShellOpen()
-  	defer server1.Close()
-  	url, _  := url.Parse(server1.URL)
-  	fs,  _  := NewFileSystem(Configuration{Addr: url.Host })
-	shell   := FsShell{FileSystem: fs}
+	server1 := mockServerFor_FsShellOpen()
+	defer server1.Close()
+	url, _ := url.Parse(server1.URL)
+	fs, _ := NewFileSystem(Configuration{Addr: url.Host})
+	shell := FsShell{FileSystem: fs}
 
 	var output bytes.Buffer
 	shell.Cat([]string{"/remote/file1", "/remote/file2"}, &output)
@@ -57,36 +57,36 @@ func Test_Cat(t *testing.T) {
 
 }
 
-func Test_Chgrp(t *testing.T){
-  	server1 := mockServerFor_FsShellChgrp()
+func Test_Chgrp(t *testing.T) {
+	server1 := mockServerFor_FsShellChgrp()
 	defer server1.Close()
-  	url, _  := url.Parse(server1.URL)
-  	fs,  _  := NewFileSystem(Configuration{Addr: url.Host })
-	shell   := FsShell{FileSystem: fs}
+	url, _ := url.Parse(server1.URL)
+	fs, _ := NewFileSystem(Configuration{Addr: url.Host})
+	shell := FsShell{FileSystem: fs}
 	_, err := shell.Chgrp([]string{"/remote/file"}, "supergrp")
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func Test_Chown(t *testing.T){
-  	server1 := mockServerFor_FsShellChown()
+func Test_Chown(t *testing.T) {
+	server1 := mockServerFor_FsShellChown()
 	defer server1.Close()
-  	url, _  := url.Parse(server1.URL)
-  	fs,  _  := NewFileSystem(Configuration{Addr: url.Host })
-	shell   := FsShell{FileSystem: fs}
+	url, _ := url.Parse(server1.URL)
+	fs, _ := NewFileSystem(Configuration{Addr: url.Host})
+	shell := FsShell{FileSystem: fs}
 	_, err := shell.Chown([]string{"/remote/file"}, "newowner")
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
-func Test_Chmod(t *testing.T){
-  	server1 := mockServerFor_FsShellChmod()
-  	defer server1.Close()
-  	url, _  := url.Parse(server1.URL)
-  	fs,  _  := NewFileSystem(Configuration{Addr: url.Host })
-	shell   := FsShell{FileSystem: fs}
+func Test_Chmod(t *testing.T) {
+	server1 := mockServerFor_FsShellChmod()
+	defer server1.Close()
+	url, _ := url.Parse(server1.URL)
+	fs, _ := NewFileSystem(Configuration{Addr: url.Host})
+	shell := FsShell{FileSystem: fs}
 	_, err := shell.Chmod([]string{"/remote/file"}, 0744)
 	if err != nil {
 		t.Fatal(err)
@@ -117,15 +117,15 @@ func Test_PutOne(t *testing.T) {
 
 	//start servers
 	//two stages 1) server2 called first, then redirected to server1.URL
-  	server1 := mockServerFor_WriteFile()
-  	servUrl, _ := url.Parse(server1.URL)
-  	server2 := mockServerFor_PutOne(servUrl)
-  	defer server2.Close()
-  	defer server1.Close()
+	server1 := mockServerFor_WriteFile()
+	servUrl, _ := url.Parse(server1.URL)
+	server2 := mockServerFor_PutOne(servUrl)
+	defer server2.Close()
+	defer server1.Close()
 
-  	// call FsShell.PutOne(), which will redirect to server1.
+	// call FsShell.PutOne(), which will redirect to server1.
 	url, _ := url.Parse(server2.URL)
-  	fs,  _ := NewFileSystem(Configuration{Addr: url.Host })
+	fs, _ := NewFileSystem(Configuration{Addr: url.Host})
 	shell := FsShell{FileSystem: fs}
 
 	_, err = shell.Put(f1.Name(), "/test/remote/file", false)
@@ -140,7 +140,7 @@ func Test_PutMany(t *testing.T) {
 		panic(err)
 	}
 	defer os.Remove(f1.Name())
-	
+
 	// f2, err := createTestFile("test-file2.txt")
 	// if err != nil {
 	// 	panic(err)
@@ -149,29 +149,29 @@ func Test_PutMany(t *testing.T) {
 
 	//start servers
 	//two stages 1) server2 called first, then redirected to server1.URL
-  	server1 := mockServerFor_WriteFile()
-  	servUrl, _ := url.Parse(server1.URL)
-  	server2 := mockServerFor_PutOne(servUrl)
-  	defer server2.Close()
-  	defer server1.Close()
+	server1 := mockServerFor_WriteFile()
+	servUrl, _ := url.Parse(server1.URL)
+	server2 := mockServerFor_PutOne(servUrl)
+	defer server2.Close()
+	defer server1.Close()
 
-  	// call FsShell.PutOne(), which will redirect to server1.
+	// call FsShell.PutOne(), which will redirect to server1.
 	url, _ := url.Parse(server2.URL)
-  	fs,  _ := NewFileSystem(Configuration{Addr: url.Host })
+	fs, _ := NewFileSystem(Configuration{Addr: url.Host})
 	shell := FsShell{FileSystem: fs}
 
-	_, err = shell.PutMany ([]string{f1.Name()}, "/test/remote/dir", false)
+	_, err = shell.PutMany([]string{f1.Name()}, "/test/remote/dir", false)
 	if err != nil {
 		t.Fatal(err)
 	}
 }
 
 func Test_Get(t *testing.T) {
-  	server1 := mockServerFor_FsShellOpen()
-  	defer server1.Close()
-  	url, _  := url.Parse(server1.URL)
-  	fs,  _  := NewFileSystem(Configuration{Addr: url.Host })
-	shell   := FsShell{FileSystem: fs}
+	server1 := mockServerFor_FsShellOpen()
+	defer server1.Close()
+	url, _ := url.Parse(server1.URL)
+	fs, _ := NewFileSystem(Configuration{Addr: url.Host})
+	shell := FsShell{FileSystem: fs}
 
 	shell.Get("/remote/file", "test-file.txt")
 	file, err := os.Open("test-file.txt")
@@ -179,9 +179,9 @@ func Test_Get(t *testing.T) {
 		t.Fatal(err)
 	}
 	defer file.Close()
-  defer os.Remove(file.Name())
+	defer os.Remove(file.Name())
 
-	data := make([]byte,len(fsShellOpenRsp))
+	data := make([]byte, len(fsShellOpenRsp))
 	c, err := file.Read(data)
 	if err != nil {
 		t.Fatal(err)
@@ -205,71 +205,72 @@ func createTestFile(fileName string) (*os.File, error) {
 
 // ******************************* Test Servers ****************************** //
 const fsShellOpenRsp = `Hello! I am ready for the world.`
+
 func mockServerFor_FsShellOpen() *httptest.Server {
-  handler := func (rsp http.ResponseWriter, req *http.Request){
-  	q := req.URL.Query()
-    if q.Get("op") == OP_GETFILESTATUS {
-    	fmt.Fprintln (rsp, fileStatusRsp)
-    }
-    if q.Get("op") == OP_OPEN{
-    	fmt.Fprintln (rsp, fsShellOpenRsp)
-    }
-  }
-  return httptest.NewServer(http.HandlerFunc(handler))	
+	handler := func(rsp http.ResponseWriter, req *http.Request) {
+		q := req.URL.Query()
+		if q.Get("op") == OP_GETFILESTATUS {
+			fmt.Fprintln(rsp, fileStatusRsp)
+		}
+		if q.Get("op") == OP_OPEN {
+			fmt.Fprintln(rsp, fsShellOpenRsp)
+		}
+	}
+	return httptest.NewServer(http.HandlerFunc(handler))
 }
 
 func mockServerFor_FsShellChgrp() *httptest.Server {
-  handler := func (rsp http.ResponseWriter, req *http.Request){
-  	q := req.URL.Query()
-    if q.Get("op") == OP_SETOWNER {
-    	if q.Get("owner") != ""{
-    		log.Fatalf("Expected owner to be empty, but was %v", q.Get("owner"))
-    	}
-    	if q.Get("group") == "" {
-    		log.Fatalf("Expected group, but got %v ", q.Get("group"))
-    	}
-    	fmt.Fprintln (rsp, "")
-    }else{
-    	log.Fatalf("Expected op=%v, but got %v", OP_SETOWNER, q.Get("op"))
-    }
-  }
-  return httptest.NewServer(http.HandlerFunc(handler))	
+	handler := func(rsp http.ResponseWriter, req *http.Request) {
+		q := req.URL.Query()
+		if q.Get("op") == OP_SETOWNER {
+			if q.Get("owner") != "" {
+				log.Fatalf("Expected owner to be empty, but was %v", q.Get("owner"))
+			}
+			if q.Get("group") == "" {
+				log.Fatalf("Expected group, but got %v ", q.Get("group"))
+			}
+			fmt.Fprintln(rsp, "")
+		} else {
+			log.Fatalf("Expected op=%v, but got %v", OP_SETOWNER, q.Get("op"))
+		}
+	}
+	return httptest.NewServer(http.HandlerFunc(handler))
 }
 
 func mockServerFor_FsShellChown() *httptest.Server {
-  handler := func (rsp http.ResponseWriter, req *http.Request){
-  	q := req.URL.Query()
-    if q.Get("op") == OP_SETOWNER {
-    	if q.Get("owner") == ""{
-    		log.Fatalf("Expected owner, but was empty%v", q.Get("owner"))
-    	}
-    	if q.Get("group") != "" {
-    		log.Fatalf("Expected group empty, but got %v ", q.Get("group"))
-    	}
-    	fmt.Fprintln (rsp, "")
-    }else{
-    	log.Fatalf("Expected op=%v, but got %v", OP_SETOWNER, q.Get("op"))
-    }
-  }
-  return httptest.NewServer(http.HandlerFunc(handler))	
+	handler := func(rsp http.ResponseWriter, req *http.Request) {
+		q := req.URL.Query()
+		if q.Get("op") == OP_SETOWNER {
+			if q.Get("owner") == "" {
+				log.Fatalf("Expected owner, but was empty%v", q.Get("owner"))
+			}
+			if q.Get("group") != "" {
+				log.Fatalf("Expected group empty, but got %v ", q.Get("group"))
+			}
+			fmt.Fprintln(rsp, "")
+		} else {
+			log.Fatalf("Expected op=%v, but got %v", OP_SETOWNER, q.Get("op"))
+		}
+	}
+	return httptest.NewServer(http.HandlerFunc(handler))
 }
 
 func mockServerFor_FsShellChmod() *httptest.Server {
-  handler := func (rsp http.ResponseWriter, req *http.Request){
-  	q := req.URL.Query()
-    if q.Get("op") == OP_SETPERMISSION {
-    	if q.Get("permission") == ""{
-    		log.Fatalf("Expected permission, but was %v", q.Get("permission"))
-    	}
-    	fmt.Fprintln (rsp, "")
-    }else{
-    	log.Fatalf("Expected op=%v, but got %v", OP_SETPERMISSION, q.Get("op"))
-    }
-  }
-  return httptest.NewServer(http.HandlerFunc(handler))	
+	handler := func(rsp http.ResponseWriter, req *http.Request) {
+		q := req.URL.Query()
+		if q.Get("op") == OP_SETPERMISSION {
+			if q.Get("permission") == "" {
+				log.Fatalf("Expected permission, but was %v", q.Get("permission"))
+			}
+			fmt.Fprintln(rsp, "")
+		} else {
+			log.Fatalf("Expected op=%v, but got %v", OP_SETPERMISSION, q.Get("op"))
+		}
+	}
+	return httptest.NewServer(http.HandlerFunc(handler))
 }
 
-const fileNotFoundExceptionRsp =`
+const fileNotFoundExceptionRsp = `
 {
   "RemoteException":
   {
@@ -278,19 +279,19 @@ const fileNotFoundExceptionRsp =`
     "message"      : "File does not exist: /foo/a.patch"
   }
 }`
+
 func mockServerFor_PutOne(redir *url.URL) *httptest.Server {
-  handler := func (rsp http.ResponseWriter, req *http.Request){
-  	q := req.URL.Query()
-    if q.Get("op") == OP_GETFILESTATUS {
-    	fmt.Fprintln (rsp, fileNotFoundExceptionRsp)
-    }
-    if q.Get("op") == OP_CREATE{
-      rsp.Header().Set("Location", redir.Scheme + "://" + redir.Host + req.URL.String())
-      rsp.WriteHeader(http.StatusSeeOther)
+	handler := func(rsp http.ResponseWriter, req *http.Request) {
+		q := req.URL.Query()
+		if q.Get("op") == OP_GETFILESTATUS {
+			fmt.Fprintln(rsp, fileNotFoundExceptionRsp)
+		}
+		if q.Get("op") == OP_CREATE {
+			rsp.Header().Set("Location", redir.Scheme+"://"+redir.Host+req.URL.String())
+			rsp.WriteHeader(http.StatusSeeOther)
 
-      fmt.Fprintf (rsp, "")
-    }
-  }
-  return httptest.NewServer(http.HandlerFunc(handler))	
+			fmt.Fprintf(rsp, "")
+		}
+	}
+	return httptest.NewServer(http.HandlerFunc(handler))
 }
-
