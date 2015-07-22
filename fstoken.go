@@ -3,8 +3,8 @@ package gowfs
 import "fmt"
 import "net/http"
 
-func (fs *FileSystem) GetDelegationToken(renewer string) (Token, error){
-	params := map[string]string{"op":OP_GETDELEGATIONTOKEN, "renewer":renewer}
+func (fs *FileSystem) GetDelegationToken(renewer string) (Token, error) {
+	params := map[string]string{"op": OP_GETDELEGATIONTOKEN, "renewer": renewer}
 
 	u, err := buildRequestUrl(fs.Config, nil, &params)
 	if err != nil {
@@ -17,11 +17,11 @@ func (fs *FileSystem) GetDelegationToken(renewer string) (Token, error){
 		return Token{}, err
 	}
 
-	return hdfsData.Token, nil	
+	return hdfsData.Token, nil
 }
 
-func (fs *FileSystem) GetDelegationTokens(renewer string)([]Token, error){
-	params := map[string]string{"op":OP_GETDELEGATIONTOKENS, "renewer":renewer}
+func (fs *FileSystem) GetDelegationTokens(renewer string) ([]Token, error) {
+	params := map[string]string{"op": OP_GETDELEGATIONTOKENS, "renewer": renewer}
 
 	u, err := buildRequestUrl(fs.Config, nil, &params)
 	if err != nil {
@@ -37,8 +37,8 @@ func (fs *FileSystem) GetDelegationTokens(renewer string)([]Token, error){
 	return hdfsData.Tokens.Token, nil
 }
 
-func (fs *FileSystem) RenewDelegationToken(token string) (int64, error){
-	params := map[string]string{"op":OP_RENEWDELEGATIONTOKEN, "token":token}
+func (fs *FileSystem) RenewDelegationToken(token string) (int64, error) {
+	params := map[string]string{"op": OP_RENEWDELEGATIONTOKEN, "token": token}
 
 	u, err := buildRequestUrl(fs.Config, nil, &params)
 	if err != nil {
@@ -55,8 +55,8 @@ func (fs *FileSystem) RenewDelegationToken(token string) (int64, error){
 
 }
 
-func (fs *FileSystem) CancelDelegationToken(token string)(bool, error){
-	params := map[string]string{"op":OP_CANCELDELEGATIONTOKEN, "token":token}
+func (fs *FileSystem) CancelDelegationToken(token string) (bool, error) {
+	params := map[string]string{"op": OP_CANCELDELEGATIONTOKEN, "token": token}
 
 	u, err := buildRequestUrl(fs.Config, nil, &params)
 	if err != nil {
