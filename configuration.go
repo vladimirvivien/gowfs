@@ -16,6 +16,7 @@ type Configuration struct {
 	DisableKeepAlives     bool
 	DisableCompression    bool
 	ResponseHeaderTimeout time.Duration
+	MaxIdleConnsPerHost   int
 }
 
 func NewConfiguration() *Configuration {
