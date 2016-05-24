@@ -61,6 +61,7 @@ func NewFileSystem(conf Configuration) (*FileSystem, error) {
 				return c, nil
 			},
 			MaxIdleConnsPerHost: conf.MaxIdleConnsPerHost,
+			ResponseHeaderTimeout: conf.ResponseHeaderTimeout,
 		},
 	}
 	return fs, nil
