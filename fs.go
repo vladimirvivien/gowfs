@@ -41,28 +41,29 @@ func µ(v ...interface{}) []interface{} {
 
 // This type maps fields and functions to HDFS's FileSystem class.
 type FileSystem struct {
-	Config Configuration
-	client http.Client
+	Config    Configuration
+	client    http.Client
+	transport *http.Transport
 }
 
 func NewFileSystem(conf Configuration) (*FileSystem, error) {
 	fs := &FileSystem{
 		Config: conf,
 	}
+	fs.transport = &http.Transport{
+		Dial: func(netw, addr string) (net.Conn, error) {
+			c, err := net.DialTimeout(netw, addr, conf.ConnectionTimeout)
+			if err != nil {
+				return nil, err
+			}
 
-	fs.client = http.Client{
-		Transport: &http.Transport{
-			Dial: func(netw, addr string) (net.Conn, error) {
-				c, err := net.DialTimeout(netw, addr, conf.ConnectionTimeout)
-				if err != nil {
-					return nil, err
-				}
-
-				return c, nil
-			},
-			MaxIdleConnsPerHost: conf.MaxIdleConnsPerHost,
-			ResponseHeaderTimeout: conf.ResponseHeaderTimeout,
+			return c, nil
 		},
+		MaxIdleConnsPerHost:   conf.MaxIdleConnsPerHost,
+		ResponseHeaderTimeout: conf.ResponseHeaderTimeout,
+	}
+	fs.client = http.Client{
+		Transport: fs.transport,
 	}
 	return fs, nil
 }

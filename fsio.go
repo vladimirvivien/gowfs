@@ -54,9 +54,8 @@ func (fs *FileSystem) Create(
 	}
 
 	// take over default transport to avoid redirect
-	tr := &http.Transport{}
 	req, _ := http.NewRequest("PUT", u.String(), nil)
-	rsp, err := tr.RoundTrip(req)
+	rsp, err := fs.transport.RoundTrip(req)
 	if err != nil {
 		return false, err
 	}
@@ -153,9 +152,8 @@ func (fs *FileSystem) Append(data io.Reader, p Path, buffersize int) (bool, erro
 	}
 
 	// take over default transport to avoid redirect
-	tr := &http.Transport{}
 	req, _ := http.NewRequest("POST", u.String(), nil)
-	rsp, err := tr.RoundTrip(req)
+	rsp, err := fs.transport.RoundTrip(req)
 	if err != nil {
 		return false, err
 	}
