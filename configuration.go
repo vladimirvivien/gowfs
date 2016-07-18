@@ -17,6 +17,9 @@ type Configuration struct {
 	DisableCompression    bool
 	ResponseHeaderTimeout time.Duration
 	MaxIdleConnsPerHost   int
+	// MaxRetries specifies the number of times to re-attempt
+	// an idempotent request to WebHDFS (e.g. Open)
+	MaxRetries int
 }
 
 func NewConfiguration() *Configuration {
@@ -25,6 +28,7 @@ func NewConfiguration() *Configuration {
 		DisableKeepAlives:     false,
 		DisableCompression:    true,
 		ResponseHeaderTimeout: time.Second * 17,
+		MaxRetries:            3,
 	}
 }
 
