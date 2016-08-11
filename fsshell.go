@@ -194,15 +194,15 @@ func (shell FsShell) Get(hdfsPath, localFile string) (bool, error) {
 func (shell FsShell) MoveFromLocal(localFile, hdfsPath string, overwrite bool) (bool, error) {
 	ok, err := shell.Put(localFile, hdfsPath, overwrite)
 	// validate operation, then remove local
-	if ok && err != nil {
-		hdfStat, err := shell.FileSystem.GetFileStatus(Path{Name: hdfsPath})
+	if ok && err == nil {
+		hdfStat, err := shell.FileSystem.GetFileStatus(Path{Name: path.Join(hdfsPath, path.Base(localFile))})
 		if err != nil {
-			return false, fmt.Errorf("Unable to verify remote file. ", err.Error())
+			return false, fmt.Errorf("Unable to verify remote file. err is %v", err.Error())
 		}
 
 		file, err := os.Open(localFile)
 		if err != nil {
-			return false, fmt.Errorf("Unable to validate operation. ", err.Error())
+			return false, fmt.Errorf("Unable to validate operation. err is %v", err.Error())
 		}
 		if hdfStat.Length != µ(file.Stat())[0].(os.FileInfo).Size() {
 			return false, fmt.Errorf("Remote and local file size mismatch.")
