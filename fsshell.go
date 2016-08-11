@@ -194,7 +194,7 @@ func (shell FsShell) Get(hdfsPath, localFile string) (bool, error) {
 func (shell FsShell) MoveFromLocal(localFile, hdfsPath string, overwrite bool) (bool, error) {
 	ok, err := shell.Put(localFile, hdfsPath, overwrite)
 	// validate operation, then remove local
-	if ok && err != nil {
+	if ok && err == nil {
 		hdfStat, err := shell.FileSystem.GetFileStatus(Path{Name: hdfsPath})
 		if err != nil {
 			return false, fmt.Errorf("Unable to verify remote file. ", err.Error())
