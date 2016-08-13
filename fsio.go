@@ -8,6 +8,13 @@ import "strings"
 import "net/url"
 import "net/http"
 
+// isTemp defines the IsTempoaray interface used frequently in the std lib.
+// even though they don't export the sentinal error values, the methods themselves
+// are exported os we can use this to typecast the interface
+type isTemp interface {
+	Temporary() bool
+}
+
 // Creates a new file and stores its content in HDFS.
 // See HDFS FileSystem.create()
 // For detail, http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#Create_and_Write_to_a_File
@@ -86,8 +93,8 @@ func (fs *FileSystem) Create(
 	return true, nil
 }
 
-//Opens the specificed Path and returns its content to be accessed locally.
-//See HDFS WebHdfsFileSystem.open()
+// Open the specificed Path and return its content to be accessed locally.
+// See HDFS WebHdfsFileSystem.open().
 // See http://hadoop.apache.org/docs/r2.2.0/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#HTTP_Query_Parameter_Dictionary
 func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadCloser, error) {
 	params := map[string]string{"op": OP_OPEN}
@@ -114,7 +121,19 @@ func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadC
 	}
 
 	req, _ := http.NewRequest("GET", u.String(), nil)
-	rsp, err := fs.client.Do(req)
+
+	var rsp *http.Response
+	for attempts := fs.Config.MaxRetries + 1; attempts > 0; attempts-- {
+		// don't scope err to this loop
+		rsp, err = fs.client.Do(req)
+		if err == nil {
+			break
+		}
+		if t, ok := err.(isTemp); !ok || !t.Temporary() {
+			break
+		}
+
+	}
 	if err != nil {
 		return nil, err
 	}
