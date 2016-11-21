@@ -10,6 +10,7 @@ import "net"
 import "net/http"
 import "net/url"
 import "io/ioutil"
+import "time"
 
 const (
 	OP_OPEN                  = "OPEN"
@@ -51,14 +52,10 @@ func NewFileSystem(conf Configuration) (*FileSystem, error) {
 		Config: conf,
 	}
 	fs.transport = &http.Transport{
-		Dial: func(netw, addr string) (net.Conn, error) {
-			c, err := net.DialTimeout(netw, addr, conf.ConnectionTimeout)
-			if err != nil {
-				return nil, err
-			}
-
-			return c, nil
-		},
+		Dial: (&net.Dialer{
+			Timeout:   conf.ConnectionTimeout,
+			KeepAlive: 30 * time.Second,
+		}).Dial,
 		MaxIdleConnsPerHost:   conf.MaxIdleConnsPerHost,
 		ResponseHeaderTimeout: conf.ResponseHeaderTimeout,
 	}
