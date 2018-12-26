@@ -19,7 +19,8 @@ func (fs *FileSystem) Create(
 	blocksize uint64,
 	replication uint16,
 	permission os.FileMode,
-	buffersize uint) (bool, error) {
+	buffersize uint,
+	contenttype string) (bool, error) {
 
 	params := map[string]string{"op": OP_CREATE}
 	params["overwrite"] = strconv.FormatBool(overwrite)
@@ -55,6 +56,10 @@ func (fs *FileSystem) Create(
 
 	// take over default transport to avoid redirect
 	req, _ := http.NewRequest("PUT", u.String(), nil)
+	// set content type
+	if contenttype != "" {
+		req.Header.Set("Content-Type", contenttype)
+	}
 	rsp, err := fs.transport.RoundTrip(req)
 	if err != nil {
 		return false, err
