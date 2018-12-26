@@ -56,10 +56,6 @@ func (fs *FileSystem) Create(
 
 	// take over default transport to avoid redirect
 	req, _ := http.NewRequest("PUT", u.String(), nil)
-	// set content type
-	if contenttype != "" {
-		req.Header.Set("Content-Type", contenttype)
-	}
 	rsp, err := fs.transport.RoundTrip(req)
 	if err != nil {
 		return false, err
@@ -73,6 +69,10 @@ func (fs *FileSystem) Create(
 	}
 
 	req, _ = http.NewRequest("PUT", u.String(), data)
+	// set content type
+	if contenttype != "" {
+		req.Header.Set("Content-Type", contenttype)
+	}
 	rsp, err = fs.client.Do(req)
 	if err != nil {
 		fmt.Errorf("FileSystem.Create(%s) - bad url: %s", loc, err.Error())
