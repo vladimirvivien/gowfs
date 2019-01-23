@@ -126,7 +126,8 @@ func (shell FsShell) Put(localFile string, hdfsPath string, overwrite bool) (boo
 		134217728,
 		3,
 		0644,
-		4096)
+		4096,
+		"")
 
 	if err != nil {
 		return false, err
