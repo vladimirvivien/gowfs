@@ -1,11 +1,13 @@
 package gowfs
 
-import "os"
-import "bytes"
-import "fmt"
-import "io"
-import "path"
-import "io/ioutil"
+import (
+	"bytes"
+	"fmt"
+	"io"
+	"io/ioutil"
+	"os"
+	"path"
+)
 
 const MAX_UP_CHUNK int64 = 1 * (1024 * 1024) * 1024 // 1 GB.
 const MAX_DOWN_CHUNK int64 = 500 * (1024 * 1024)    // 500 MB
@@ -16,7 +18,7 @@ type FsShell struct {
 }
 
 // Appends the specified list of local files to the HDFS path.
-func (shell FsShell) AppendToFile(filePaths []string, hdfsPath string) (bool, error) {
+func (shell FsShell) AppendToFile(filePaths []string, hdfsPath string, contenttype string) (bool, error) {
 
 	for _, path := range filePaths {
 		file, err := os.Open(path)
@@ -31,7 +33,7 @@ func (shell FsShell) AppendToFile(filePaths []string, hdfsPath string) (bool, er
 			return false, err
 		}
 
-		_, err = shell.FileSystem.Append(bytes.NewBuffer(data), Path{Name: hdfsPath}, 0)
+		_, err = shell.FileSystem.Append(bytes.NewBuffer(data), Path{Name: hdfsPath}, 0, contenttype)
 		if err != nil {
 			return false, err
 		}
