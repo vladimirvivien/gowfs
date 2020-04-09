@@ -1,12 +1,14 @@
 package gowfs
 
-import "fmt"
-import "os"
-import "io"
-import "strconv"
-import "strings"
-import "net/url"
-import "net/http"
+import (
+	"fmt"
+	"io"
+	"net/http"
+	"net/url"
+	"os"
+	"strconv"
+	"strings"
+)
 
 // Creates a new file and stores its content in HDFS.
 // See HDFS FileSystem.create()
@@ -142,7 +144,7 @@ func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadC
 // See HDFS FileSystem.append()
 // See http://hadoop.apache.org/docs/stable/hadoop-project-dist/hadoop-hdfs/WebHDFS.html#Append_to_a_File
 // NOTE: Append() is known to have issues - see https://issues.apache.org/jira/browse/HDFS-4600
-func (fs *FileSystem) Append(data io.Reader, p Path, buffersize int) (bool, error) {
+func (fs *FileSystem) Append(data io.Reader, p Path, buffersize int, contenttype string) (bool, error) {
 	params := map[string]string{"op": OP_APPEND}
 
 	if buffersize == 0 {
@@ -171,6 +173,10 @@ func (fs *FileSystem) Append(data io.Reader, p Path, buffersize int) (bool, erro
 	}
 
 	req, _ = http.NewRequest("POST", u.String(), data)
+	// set content type
+	if contenttype != "" {
+		req.Header.Set("Content-Type", contenttype)
+	}
 	rsp, err = fs.client.Do(req)
 	if err != nil {
 		return false, err
