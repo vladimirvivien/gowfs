@@ -10,6 +10,7 @@ const WebHdfsVer string = "/webhdfs/v1"
 
 type Configuration struct {
 	Addr                  string // host:port
+	UseHTTPS              bool
 	BasePath              string // initial base path to be appended
 	User                  string // user.name to use to connect
 	ConnectionTimeout     time.Duration
@@ -33,7 +34,12 @@ func (conf *Configuration) GetNameNodeUrl() (*url.URL, error) {
 		return nil, errors.New("Configuration namenode address not set.")
 	}
 
-	var urlStr string = fmt.Sprintf("http://%s%s%s", conf.Addr, WebHdfsVer, conf.BasePath)
+	scheme := "http"
+	if conf.UseHTTPS {
+		scheme = "https"
+	}
+
+	urlStr := fmt.Sprintf("%s://%s%s%s", scheme, conf.Addr, WebHdfsVer, conf.BasePath)
 
 	if &conf.User == nil || len(conf.User) == 0 {
 		u, _ := user.Current()
