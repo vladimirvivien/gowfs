@@ -20,8 +20,8 @@ type FsShell struct {
 // Appends the specified list of local files to the HDFS path.
 func (shell FsShell) AppendToFile(filePaths []string, hdfsPath string, contenttype string) (bool, error) {
 
-	for _, path := range filePaths {
-		file, err := os.Open(path)
+	for _, filePath := range filePaths {
+		file, err := os.Open(filePath)
 
 		if err != nil {
 			return false, err
@@ -44,14 +44,14 @@ func (shell FsShell) AppendToFile(filePaths []string, hdfsPath string, contentty
 
 // Returns a writer with the content of the specified files.
 func (shell FsShell) Cat(hdfsPaths []string, writr io.Writer) error {
-	for _, path := range hdfsPaths {
-		stat, err := shell.FileSystem.GetFileStatus(Path{Name: path})
+	for _, hdfsPath := range hdfsPaths {
+		stat, err := shell.FileSystem.GetFileStatus(Path{Name: hdfsPath})
 		if err != nil {
 			return err
 		}
 		//TODO add code to chunk super large files.
 		if stat.Length < MAX_DOWN_CHUNK {
-			readr, err := shell.FileSystem.Open(Path{Name: path}, 0, stat.Length, 4096)
+			readr, err := shell.FileSystem.Open(Path{Name: hdfsPath}, 0, stat.Length, 4096)
 			if err != nil {
 				return err
 			}
@@ -63,8 +63,8 @@ func (shell FsShell) Cat(hdfsPaths []string, writr io.Writer) error {
 
 // Changes the group association of the given hdfs paths.
 func (shell FsShell) Chgrp(hdfsPaths []string, grpName string) (bool, error) {
-	for _, path := range hdfsPaths {
-		_, err := shell.FileSystem.SetOwner(Path{Name: path}, "", grpName)
+	for _, hdfsPath := range hdfsPaths {
+		_, err := shell.FileSystem.SetOwner(Path{Name: hdfsPath}, "", grpName)
 		if err != nil {
 			return false, err
 		}
@@ -74,8 +74,8 @@ func (shell FsShell) Chgrp(hdfsPaths []string, grpName string) (bool, error) {
 
 // Changes the owner of the specified hdfs paths.
 func (shell FsShell) Chown(hdfsPaths []string, owner string) (bool, error) {
-	for _, path := range hdfsPaths {
-		_, err := shell.FileSystem.SetOwner(Path{Name: path}, owner, "")
+	for _, hdfsPath := range hdfsPaths {
+		_, err := shell.FileSystem.SetOwner(Path{Name: hdfsPath}, owner, "")
 		if err != nil {
 			return false, err
 		}
@@ -85,8 +85,8 @@ func (shell FsShell) Chown(hdfsPaths []string, owner string) (bool, error) {
 
 // Changes the filemode of the provided hdfs paths.
 func (shell FsShell) Chmod(hdfsPaths []string, perm os.FileMode) (bool, error) {
-	for _, path := range hdfsPaths {
-		_, err := shell.FileSystem.SetPermission(Path{Name: path}, perm)
+	for _, hdfsPath := range hdfsPaths {
+		_, err := shell.FileSystem.SetPermission(Path{Name: hdfsPath}, perm)
 		if err != nil {
 			return false, err
 		}
