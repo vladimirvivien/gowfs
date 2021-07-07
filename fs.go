@@ -182,6 +182,5 @@ start:
 			goto start
 		}
 	}
-	defer rsp.Body.Close()
 	return
 }

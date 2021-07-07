@@ -18,9 +18,9 @@ func init() {
 }
 
 func main() {
-	var nn = flag.String("namenode", "localhost:50070", "Namenode address")
-	var path = flag.String("path", "/user/"+uname, "HDFS file path")
-	var username = flag.String("user", uname, "HDFS user")
+	var nn = flag.String("namenode", "10.36.64.31:50070;10.36.64.18:50070", "Namenode address")
+	var path = flag.String("path", "/webhdfs/v1/department/ep/", "HDFS file path")
+	var username = flag.String("user", "hdfs", "HDFS user")
 	var testData = flag.String("testdata", "./war-and-peace.txt", "Local test file to use")
 	flag.Parse()
 
@@ -31,7 +31,7 @@ func main() {
 	}
 
 	testConnection(fs)
-	ls(fs, *path)
+	ls(fs, "logs")
 	testDir := *path + "/test"
 	createTestDir(fs, testDir)
 	remoteFile := uploadTestFile(fs, *testData, testDir)
