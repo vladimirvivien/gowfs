@@ -5,11 +5,17 @@ See https://github.com/vladimirvivien/gowfs.
 */
 package gowfs
 
-import "encoding/json"
-import "net"
-import "net/http"
-import "net/url"
-import "io/ioutil"
+import (
+	"encoding/json"
+	"io"
+	"io/ioutil"
+	"log"
+	"net"
+	"net/http"
+	"net/url"
+	"runtime/debug"
+	"strings"
+)
 
 const (
 	OP_OPEN                  = "OPEN"
@@ -133,4 +139,49 @@ func requestHdfsData(client http.Client, req http.Request) (HdfsJsonData, error)
 	defer rsp.Body.Close()
 	hdfsData, err := responseToHdfsData(rsp)
 	return hdfsData, err
+}
+
+func (fs *FileSystem) sendHttpRequest(method string, p *Path, params *map[string]string, body io.Reader, byTransport bool) (rsp *http.Response, err error) {
+	var attemptHosts []string
+	defer func() {
+		if rc := recover(); rc != nil {
+			debugStack := ""
+			for _, v := range strings.Split(string(debug.Stack()), "\n") {
+				debugStack += v + "\n"
+			}
+			log.Printf("panic: %v, %v\n", rc, debugStack)
+			return
+		}
+	}()
+start:
+	u, err := buildRequestUrl(fs.Config, p, params)
+	if err != nil {
+		// 倘若url都拿不到了，直接返回即可
+		return
+	}
+	req, _ := http.NewRequest(method, u.String(), body)
+	if byTransport {
+		rsp, err = fs.transport.RoundTrip(req)
+	} else {
+		rsp, err = fs.client.Do(req)
+	}
+	if err != nil {
+		log.Printf("sendHttpRequest failed, url:%s, err: %v", u.String(), err.Error())
+		// 如果请求失败，则尝试其他addr
+		addr := HdfsAddrQueue.Front().(string)
+		attemptHosts = append(attemptHosts, addr)
+		if len(attemptHosts) == HdfsAddrQueue.Len() {
+			// 如果两个长度一样，则视为所有addr都无效，也返回
+			return
+		} else {
+			// 开始切换addr
+			HdfsAddrQueue.Rotate(-1)
+			if rsp != nil {
+				rsp.Body.Close()
+			}
+			goto start
+		}
+	}
+	defer rsp.Body.Close()
+	return
 }

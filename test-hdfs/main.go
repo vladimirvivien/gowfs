@@ -8,7 +8,7 @@ import "path"
 import "os/user"
 import "strconv"
 import "time"
-import "vladimirvivien/gowfs"
+import "gowfs"
 
 var uname string
 
@@ -24,10 +24,7 @@ func main() {
 	var testData = flag.String("testdata", "./war-and-peace.txt", "Local test file to use")
 	flag.Parse()
 
-	conf := *gowfs.NewConfiguration()
-
-	conf.Addr = *nn
-	conf.User = *username
+	conf := *gowfs.NewConfiguration(*nn, *path, *username, false)
 	fs, err := gowfs.NewFileSystem(conf)
 	if err != nil {
 		log.Fatal(err)
@@ -200,7 +197,7 @@ func appendToRemoteFile(fs *gowfs.FileSystem, localFile, hdfsPath string) {
 		log.Fatal("Unable to get file info for ", hdfsPath, ":", err.Error())
 	}
 	shell := gowfs.FsShell{FileSystem: fs}
-	_, err = shell.AppendToFile([]string{localFile}, hdfsPath)
+	_, err = shell.AppendToFile([]string{localFile}, hdfsPath, "")
 	if err != nil {
 		log.Fatal("AppendToFile() failed: ", err.Error())
 	}

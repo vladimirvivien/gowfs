@@ -13,17 +13,15 @@ func (fs *FileSystem) Rename(source Path, destination Path) (bool, error) {
 	}
 
 	params := map[string]string{"op": OP_RENAME, "destination": destination.Name}
-	u, err := buildRequestUrl(fs.Config, &source, &params)
+	rsp, reqErr := fs.sendHttpRequest("PUT", &source, &params, nil, false)
+	if reqErr != nil {
+		return false, reqErr
+	}
+	defer rsp.Body.Close()
+	hdfsData, err := responseToHdfsData(rsp)
 	if err != nil {
 		return false, err
 	}
-
-	req, _ := http.NewRequest("PUT", u.String(), nil)
-	hdfsData, err := requestHdfsData(fs.client, *req)
-	if err != nil {
-		return false, err
-	}
-
 	return hdfsData.Boolean, nil
 }
 
@@ -36,18 +34,15 @@ func (fs *FileSystem) Delete(path Path, recursive bool) (bool, error) {
 	params := map[string]string{
 		"op":        OP_DELETE,
 		"recursive": strconv.FormatBool(recursive)}
-
-	u, err := buildRequestUrl(fs.Config, &path, &params)
+	rsp, reqErr := fs.sendHttpRequest("DELETE", &path, &params, nil, false)
+	if reqErr != nil {
+		return false, reqErr
+	}
+	defer rsp.Body.Close()
+	hdfsData, err := responseToHdfsData(rsp)
 	if err != nil {
 		return false, err
 	}
-
-	req, _ := http.NewRequest("DELETE", u.String(), nil)
-	hdfsData, err := requestHdfsData(fs.client, *req)
-	if err != nil {
-		return false, err
-	}
-
 	return hdfsData.Boolean, nil
 }
 
@@ -64,16 +59,11 @@ func (fs *FileSystem) SetPermission(path Path, permission os.FileMode) (bool, er
 		"op":         OP_SETPERMISSION,
 		"permission": strconv.FormatInt(int64(permission), 8)}
 
-	u, err := buildRequestUrl(fs.Config, &path, &params)
-	if err != nil {
-		return false, err
+	rsp, reqErr := fs.sendHttpRequest("PUT", &path, &params, nil, false)
+	if reqErr != nil {
+		return false, reqErr
 	}
-
-	req, _ := http.NewRequest("PUT", u.String(), nil)
-	rsp, err := fs.client.Do(req)
-	if err != nil {
-		return false, err
-	}
+	defer rsp.Body.Close()
 	if rsp.StatusCode != http.StatusOK {
 		return false, fmt.Errorf("SetPermission() - server returned unexpected value, permission not set.")
 	}
@@ -92,16 +82,11 @@ func (fs *FileSystem) SetOwner(path Path, owner string, group string) (bool, err
 		"owner": owner,
 		"group": group}
 
-	u, err := buildRequestUrl(fs.Config, &path, &params)
-	if err != nil {
-		return false, err
+	rsp, reqErr := fs.sendHttpRequest("PUT", &path, &params, nil, false)
+	if reqErr != nil {
+		return false, reqErr
 	}
-
-	req, _ := http.NewRequest("PUT", u.String(), nil)
-	rsp, err := fs.client.Do(req)
-	if err != nil {
-		return false, err
-	}
+	defer rsp.Body.Close()
 	if rsp.StatusCode != http.StatusOK {
 		return false, fmt.Errorf("SetOwner() - server returned unexpected value, owner not set.")
 	}
@@ -122,16 +107,15 @@ func (fs *FileSystem) SetReplication(path Path, replication uint16) (bool, error
 		"op":          OP_SETREPLICATION,
 		"replication": strconv.FormatInt(int64(replication), 8)}
 
-	u, err := buildRequestUrl(fs.Config, &path, &params)
+	rsp, reqErr := fs.sendHttpRequest("PUT", &path, &params, nil, false)
+	if reqErr != nil {
+		return false, reqErr
+	}
+	defer rsp.Body.Close()
+	hdfsData, err := responseToHdfsData(rsp)
 	if err != nil {
 		return false, err
 	}
-	req, _ := http.NewRequest("PUT", u.String(), nil)
-	hdfsData, err := requestHdfsData(fs.client, *req)
-	if err != nil {
-		return false, err
-	}
-
 	return hdfsData.Boolean, nil
 }
 
@@ -147,20 +131,14 @@ func (fs *FileSystem) SetTimes(path Path, accesstime int64, modificationtime int
 		"accesstime":       strconv.FormatInt(int64(accesstime), 10),
 		"modificationtime": strconv.FormatInt(int64(modificationtime), 10)}
 
-	u, err := buildRequestUrl(fs.Config, &path, &params)
-	if err != nil {
-		return false, err
+	rsp, reqErr := fs.sendHttpRequest("PUT", &path, &params, nil, false)
+	if reqErr != nil {
+		return false, reqErr
 	}
-
-	req, _ := http.NewRequest("PUT", u.String(), nil)
-	rsp, err := fs.client.Do(req)
-	if err != nil {
-		return false, err
-	}
+	defer rsp.Body.Close()
 	if rsp.StatusCode != http.StatusOK {
 		return false, fmt.Errorf("SetTimes() - server returned unexpected value, resource times not modified.")
 	}
-
 	return true, nil
 }
 
@@ -174,17 +152,15 @@ func (fs *FileSystem) MkDirs(p Path, fm os.FileMode) (bool, error) {
 	} else {
 		params["permission"] = strconv.FormatInt(int64(fm), 8)
 	}
-	u, err := buildRequestUrl(fs.Config, &p, &params)
+	rsp, reqErr := fs.sendHttpRequest("PUT", &p, &params, nil, false)
+	if reqErr != nil {
+		return false, reqErr
+	}
+	defer rsp.Body.Close()
+	hdfsData, err := responseToHdfsData(rsp)
 	if err != nil {
 		return false, err
 	}
-
-	req, _ := http.NewRequest("PUT", u.String(), nil)
-	hdfsData, err := requestHdfsData(fs.client, *req)
-	if err != nil {
-		return false, err
-	}
-
 	return hdfsData.Boolean, nil
 }
 
@@ -203,20 +179,11 @@ func (fs *FileSystem) CreateSymlink(dest Path, link Path, createParent bool) (bo
 
 	params["destination"] = dest.Name
 	params["createParent"] = strconv.FormatBool(createParent)
-	u, err := buildRequestUrl(fs.Config, &link, &params)
+	rsp, err := fs.sendHttpRequest("PUT", &link, &params, nil, false)
 	if err != nil {
 		return false, err
 	}
-
-	req, _ := http.NewRequest("PUT", u.String(), nil)
-	rsp, err := fs.client.Do(req)
-
 	defer rsp.Body.Close()
-
-	if err != nil {
-		return false, err
-	}
-
 	return true, nil
 }
 
@@ -224,36 +191,31 @@ func (fs *FileSystem) CreateSymlink(dest Path, link Path, createParent bool) (bo
 // on the remote system. (see HDFS FileSystem.getFileStatus())
 func (fs *FileSystem) GetFileStatus(p Path) (FileStatus, error) {
 	params := map[string]string{"op": OP_GETFILESTATUS}
-	u, err := buildRequestUrl(fs.Config, &p, &params)
+	rsp, reqErr := fs.sendHttpRequest("GET", &p, &params, nil, false)
+	if reqErr != nil {
+		return FileStatus{}, reqErr
+	}
+	defer rsp.Body.Close()
+	hdfsData, err := responseToHdfsData(rsp)
 	if err != nil {
 		return FileStatus{}, err
 	}
-
-	req, _ := http.NewRequest("GET", u.String(), nil)
-	hdfsData, err := requestHdfsData(fs.client, *req)
-	if err != nil {
-		return FileStatus{}, err
-	}
-
 	return hdfsData.FileStatus, nil
 }
 
 // Returns an array of FileStatus for a given file directory.
 // For details, see HDFS FileSystem.listStatus()
 func (fs *FileSystem) ListStatus(p Path) ([]FileStatus, error) {
-
 	params := map[string]string{"op": OP_LISTSTATUS}
-	u, err := buildRequestUrl(fs.Config, &p, &params)
+	rsp, reqErr := fs.sendHttpRequest("GET", &p, &params, nil, false)
+	if reqErr != nil {
+		return nil, reqErr
+	}
+	defer rsp.Body.Close()
+	hdfsData, err := responseToHdfsData(rsp)
 	if err != nil {
 		return nil, err
 	}
-
-	req, _ := http.NewRequest("GET", u.String(), nil)
-	hdfsData, err := requestHdfsData(fs.client, *req)
-	if err != nil {
-		return nil, err
-	}
-
 	return hdfsData.FileStatuses.FileStatus, nil
 }
 
@@ -261,17 +223,15 @@ func (fs *FileSystem) ListStatus(p Path) ([]FileStatus, error) {
 //For detail, see HDFS FileSystem.getContentSummary()
 func (fs *FileSystem) GetContentSummary(p Path) (ContentSummary, error) {
 	params := map[string]string{"op": OP_GETCONTENTSUMMARY}
-	u, err := buildRequestUrl(fs.Config, &p, &params)
+	rsp, reqErr := fs.sendHttpRequest("GET", &p, &params, nil, false)
+	if reqErr != nil {
+		return ContentSummary{}, reqErr
+	}
+	defer rsp.Body.Close()
+	hdfsData, err := responseToHdfsData(rsp)
 	if err != nil {
 		return ContentSummary{}, err
 	}
-
-	req, _ := http.NewRequest("GET", u.String(), nil)
-	hdfsData, err := requestHdfsData(fs.client, *req)
-	if err != nil {
-		return ContentSummary{}, err
-	}
-
 	return hdfsData.ContentSummary, nil
 }
 
@@ -283,13 +243,12 @@ func (fs *FileSystem) GetHomeDirectory() (Path, error) {
 // For detail, see HDFS FileSystem.getFileChecksum()
 func (fs *FileSystem) GetFileChecksum(p Path) (FileChecksum, error) {
 	params := map[string]string{"op": OP_GETFILECHECKSUM}
-	u, err := buildRequestUrl(fs.Config, &p, &params)
-	if err != nil {
-		return FileChecksum{}, err
+	rsp, reqErr := fs.sendHttpRequest("GET", &p, &params, nil, false)
+	if reqErr != nil {
+		return FileChecksum{}, reqErr
 	}
-
-	req, _ := http.NewRequest("GET", u.String(), nil)
-	hdfsData, err := requestHdfsData(fs.client, *req)
+	defer rsp.Body.Close()
+	hdfsData, err := responseToHdfsData(rsp)
 	if err != nil {
 		return FileChecksum{}, err
 	}
