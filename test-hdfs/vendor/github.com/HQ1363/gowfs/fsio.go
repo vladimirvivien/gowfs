@@ -112,7 +112,7 @@ func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadC
 	if err != nil {
 		return nil, err
 	}
-	//defer rsp.Body.Close()
+	defer rsp.Body.Close()
 	// possible error
 	if rsp.StatusCode != http.StatusOK {
 		defer rsp.Body.Close()

@@ -8,7 +8,7 @@ import "path"
 import "os/user"
 import "strconv"
 import "time"
-import "gowfs"
+import "github.com/HQ1363/gowfs"
 
 var uname string
 
