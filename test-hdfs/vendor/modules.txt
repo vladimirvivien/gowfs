@@ -1,5 +1,0 @@
-# github.com/HQ1363/gowfs v0.1.2
-## explicit
-github.com/HQ1363/gowfs
-# github.com/gammazero/deque v0.1.0
-github.com/gammazero/deque

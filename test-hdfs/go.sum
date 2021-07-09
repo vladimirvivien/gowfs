@@ -1,4 +1,6 @@
 github.com/HQ1363/gowfs v0.1.2 h1:3qJbFIbiUPfTTYlXyO469FYAKH9/d2EQfXixhaOQx/M=
 github.com/HQ1363/gowfs v0.1.2/go.mod h1:VmxJck2FY5jk51DtVrRVZkXDDUnoZ9gkLCmIyIo29vE=
+github.com/HQ1363/gowfs v0.1.3 h1:UY1rfponG+0CZKniOPCvNV3FKC9uAfLPkjGCNYtUwmE=
+github.com/HQ1363/gowfs v0.1.3/go.mod h1:VmxJck2FY5jk51DtVrRVZkXDDUnoZ9gkLCmIyIo29vE=
 github.com/gammazero/deque v0.1.0 h1:f9LnNmq66VDeuAlSAapemq/U7hJ2jpIWa4c09q8Dlik=
 github.com/gammazero/deque v0.1.0/go.mod h1:KQw7vFau1hHuM8xmI9RbgKFbAsQFWmBpqQ2KenFLk6M=
