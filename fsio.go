@@ -51,26 +51,20 @@ func (fs *FileSystem) Create(
 		params["buffersize"] = strconv.FormatInt(int64(buffersize), 10)
 	}
 
-	u, err := buildRequestUrl(fs.Config, &p, &params)
-	if err != nil {
-		return false, err
-	}
-
 	// take over default transport to avoid redirect
-	req, _ := http.NewRequest("PUT", u.String(), nil)
-	rsp, err := fs.transport.RoundTrip(req)
-	if err != nil {
-		return false, err
+	rsp, reqErr := fs.sendHttpRequest("PUT", &p, &params, nil, true)
+	if reqErr != nil {
+		return false, reqErr
 	}
+	defer rsp.Body.Close()
 
-	// extract returned url in header.
+	// extract returned url in header.  -- 这里以返回header的URI为准，发生失败时不考虑更换HDFS Addr, 下面逻辑正常走
 	loc := rsp.Header.Get("Location")
-	u, err = url.ParseRequestURI(loc)
+	u, err := url.ParseRequestURI(loc)
 	if err != nil {
 		return false, fmt.Errorf("FileSystem.Create(%s) - invalid redirect URL from server: %s", u, err.Error())
 	}
-
-	req, _ = http.NewRequest("PUT", u.String(), data)
+	req, _ := http.NewRequest("PUT", u.String(), data)
 	// set content type
 	if contenttype != "" {
 		req.Header.Set("Content-Type", contenttype)
@@ -114,18 +108,11 @@ func (fs *FileSystem) Open(p Path, offset, length int64, buffSize int) (io.ReadC
 	} else {
 		params["buffersize"] = strconv.Itoa(buffSize)
 	}
-
-	u, err := buildRequestUrl(fs.Config, &p, &params)
+	rsp, err := fs.sendHttpRequest("GET", &p, &params, nil, false)
 	if err != nil {
 		return nil, err
 	}
-
-	req, _ := http.NewRequest("GET", u.String(), nil)
-	rsp, err := fs.client.Do(req)
-	if err != nil {
-		return nil, err
-	}
-
+	//defer rsp.Body.Close()
 	// possible error
 	if rsp.StatusCode != http.StatusOK {
 		defer rsp.Body.Close()
@@ -153,26 +140,21 @@ func (fs *FileSystem) Append(data io.Reader, p Path, buffersize int, contenttype
 		params["buffersize"] = strconv.FormatInt(int64(buffersize), 10)
 	}
 
-	u, err := buildRequestUrl(fs.Config, &p, &params)
-	if err != nil {
-		return false, err
-	}
-
 	// take over default transport to avoid redirect
-	req, _ := http.NewRequest("POST", u.String(), nil)
-	rsp, err := fs.transport.RoundTrip(req)
-	if err != nil {
-		return false, err
+	rsp, reqErr := fs.sendHttpRequest("POST", &p, &params, nil, true)
+	if reqErr != nil {
+		return false, reqErr
 	}
+	defer rsp.Body.Close()
 
-	// extract returned url in header.
+	// extract returned url in header. -- 这里以返回header的URI为准，发生失败时不考虑更换HDFS Addr, 下面逻辑正常走
 	loc := rsp.Header.Get("Location")
-	u, err = url.ParseRequestURI(loc)
+	u, err := url.ParseRequestURI(loc)
 	if err != nil {
 		return false, fmt.Errorf("Append(%s) - did not receive a valid URL from server.", loc)
 	}
 
-	req, _ = http.NewRequest("POST", u.String(), data)
+	req, _ := http.NewRequest("POST", u.String(), data)
 	// set content type
 	if contenttype != "" {
 		req.Header.Set("Content-Type", contenttype)
@@ -202,24 +184,18 @@ func (fs *FileSystem) Concat(target Path, sources []string) (bool, error) {
 	}
 	params := map[string]string{"op": OP_CONCAT}
 	params["sources"] = strings.Join(sources, ",")
-
-	u, err := buildRequestUrl(fs.Config, &target, &params)
+	rsp, err := fs.sendHttpRequest("POST", &target, &params, nil, false)
 	if err != nil {
 		return false, err
 	}
-
-	req, _ := http.NewRequest("POST", u.String(), nil)
-	rsp, err := fs.client.Do(req)
-	if err != nil {
-		return false, err
-	}
+	defer rsp.Body.Close()
 	if rsp.StatusCode != http.StatusOK {
 		defer rsp.Body.Close()
 		_, err = responseToHdfsData(rsp)
 		if err != nil {
 			return false, err
 		}
-		return false, fmt.Errorf("Concat(%s) - File not concatenated.  Server returned status %v", u.String(), rsp.StatusCode)
+		return false, fmt.Errorf("Concat(%s) - File not concatenated.  Server returned status %v", rsp.Request.URL, rsp.StatusCode)
 	}
 	return true, nil
 }

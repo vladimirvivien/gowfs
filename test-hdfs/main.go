@@ -1,14 +1,18 @@
 package main
 
-import "fmt"
-import "flag"
-import "log"
-import "os"
-import "path"
-import "os/user"
-import "strconv"
-import "time"
-import "vladimirvivien/gowfs"
+import (
+	"flag"
+	"fmt"
+	"github.com/HQ1363/gowfs"
+	"io"
+	"io/ioutil"
+	"log"
+	"os"
+	"os/user"
+	"path"
+	"strconv"
+	"time"
+)
 
 var uname string
 
@@ -18,23 +22,20 @@ func init() {
 }
 
 func main() {
-	var nn = flag.String("namenode", "localhost:50070", "Namenode address")
-	var path = flag.String("path", "/user/"+uname, "HDFS file path")
-	var username = flag.String("user", uname, "HDFS user")
+	var nn = flag.String("namenode", "127.0.0.1:50070;10.1.1.1:50070", "Namenode address")
+	var path = flag.String("path", "/webhdfs/v1/department/ep/", "HDFS file path")
+	var username = flag.String("user", "hdfs", "HDFS user")
 	var testData = flag.String("testdata", "./war-and-peace.txt", "Local test file to use")
 	flag.Parse()
 
-	conf := *gowfs.NewConfiguration()
-
-	conf.Addr = *nn
-	conf.User = *username
+	conf := *gowfs.NewConfiguration(*nn, *path, *username, false)
 	fs, err := gowfs.NewFileSystem(conf)
 	if err != nil {
 		log.Fatal(err)
 	}
 
 	testConnection(fs)
-	ls(fs, *path)
+	ls(fs, "logs")
 	testDir := *path + "/test"
 	createTestDir(fs, testDir)
 	remoteFile := uploadTestFile(fs, *testData, testDir)
@@ -71,6 +72,23 @@ func ls(fs *gowfs.FileSystem, hdfsPath string) {
 			stat.Length,
 			formatModTime(stat.ModificationTime),
 			stat.PathSuffix)
+	}
+}
+
+func readHDFSFile(fs *gowfs.FileSystem, hdfsPath string) (string, error) {
+	var (
+		r   io.ReadCloser
+		err error
+	)
+	filePath := gowfs.Path{Name: hdfsPath}
+	if r, err = fs.Open(filePath, 0, -1, -1); err != nil {
+		return "", fmt.Errorf("readHDFSFile open file error: %v", err)
+	}
+	defer r.Close()
+	if body, err := ioutil.ReadAll(r); err != nil {
+		return "", fmt.Errorf("readHDFSFile ioutil.ReadAll %s error: %v", filePath.Name, err)
+	} else {
+		return string(body), nil
 	}
 }
 
@@ -200,7 +218,7 @@ func appendToRemoteFile(fs *gowfs.FileSystem, localFile, hdfsPath string) {
 		log.Fatal("Unable to get file info for ", hdfsPath, ":", err.Error())
 	}
 	shell := gowfs.FsShell{FileSystem: fs}
-	_, err = shell.AppendToFile([]string{localFile}, hdfsPath)
+	_, err = shell.AppendToFile([]string{localFile}, hdfsPath, "")
 	if err != nil {
 		log.Fatal("AppendToFile() failed: ", err.Error())
 	}

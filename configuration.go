@@ -1,16 +1,24 @@
 package gowfs
 
-import "fmt"
-import "errors"
-import "time"
-import "net/url"
-import "os/user"
+import (
+	"errors"
+	"fmt"
+	"github.com/gammazero/deque"
+	"net/url"
+	"os/user"
+	"strings"
+	"time"
+)
 
 const WebHdfsVer string = "/webhdfs/v1"
 
+var HdfsAddrQueue deque.Deque
+
+
 type Configuration struct {
-	Addr                  string // host:port
+	Addr                  string // host:port;host:port
 	BasePath              string // initial base path to be appended
+	UseHTTPS              bool   // 是否启用https请求hdfs
 	User                  string // user.name to use to connect
 	ConnectionTimeout     time.Duration
 	DisableKeepAlives     bool
@@ -19,8 +27,15 @@ type Configuration struct {
 	MaxIdleConnsPerHost   int
 }
 
-func NewConfiguration() *Configuration {
+func NewConfiguration(addrList, basePath, user string, https bool) *Configuration {
+	for _, addr := range strings.Split(addrList, ";") {
+		HdfsAddrQueue.PushBack(addr)
+	}
 	return &Configuration{
+		Addr:                  addrList,
+		BasePath:              basePath,
+		UseHTTPS:              https,
+		User:                  user,
 		ConnectionTimeout:     time.Second * 17,
 		DisableKeepAlives:     false,
 		DisableCompression:    true,
@@ -30,10 +45,23 @@ func NewConfiguration() *Configuration {
 
 func (conf *Configuration) GetNameNodeUrl() (*url.URL, error) {
 	if &conf.Addr == nil {
-		return nil, errors.New("Configuration namenode address not set.")
+		return nil, errors.New("configuration namenode address not set")
 	}
 
-	var urlStr string = fmt.Sprintf("http://%s%s%s", conf.Addr, WebHdfsVer, conf.BasePath)
+	if HdfsAddrQueue.Len() <= 0 {
+		return nil, errors.New("no available namenode address can be set")
+	}
+
+	scheme := "http"
+	if conf.UseHTTPS {
+		scheme = "https"
+	}
+
+	var addr string
+	if HdfsAddrQueue.Len() > 0 {
+		addr = HdfsAddrQueue.Front().(string)
+	}
+	urlStr := fmt.Sprintf("%s://%s%s%s", scheme, addr, WebHdfsVer, conf.BasePath)
 
 	if &conf.User == nil || len(conf.User) == 0 {
 		u, _ := user.Current()
